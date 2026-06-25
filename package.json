@@ -1,0 +1,28 @@
+{
+  "name": "preapexis-pi-kit",
+  "version": "1.0.0",
+  "description": "A personalized kit for pi-coding-agent, providing extensions, themes, and prompts to enhance the coding experience.",
+  "keywords": [
+    "pi-package"
+  ],
+  "pi": {
+    "extensions": [
+      "./extensions"
+    ],
+    "skills": [
+      "./skills"
+    ],
+    "prompts": [
+      "./prompts"
+    ],
+    "themes": [
+      "./themes"
+    ]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "typebox": "*"
+  },
+  "author": "Varun Gaikwad",
+  "license": "ISC"
+}
