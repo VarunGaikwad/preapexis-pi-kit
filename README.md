@@ -36,6 +36,29 @@ A personalized kit for the [pi-coding-agent](https://github.com/earendil-works/p
 
 4. Restart the PI editor/reload extensions. The kit’s extensions, prompts, skills, and themes will be automatically available.
 
+### Alternative installation methods
+
+- Install directly from GitHub (master branch):
+
+  ```bash
+  pi install git:github.com/VarunGaikwad/preapexis-pi-kit@master
+  ```
+
+- Install a local clone in link mode using the `-l` flag:
+
+  ```bash
+  # Clone the repo first if you haven't already
+  git clone https://github.com/VarunGaikwad/preapexis-pi-kit.git
+  cd preapexis-pi-kit
+  pi install -l .
+  ```
+
+  Or, if you already have a copy elsewhere:
+
+  ```bash
+  pi install -l /path/to/preapexis-pi-kit
+  ```
+
 ## Usage
 
 ### Prompt‑based workflow
