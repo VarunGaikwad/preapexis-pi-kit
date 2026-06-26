@@ -32,6 +32,36 @@ A personalized kit for the [Pi Agent Harness](https://github.com/earendil-works/
 
 ## Installation
 
+### Install from npm
+
+If the package is published to npm, install it with:
+
+```bash
+pi install npm:preapexis-pi-kit
+```
+
+After installing, restart Pi or reload extensions:
+
+```txt
+/reload
+```
+
+### Install from GitHub
+
+Install directly from GitHub:
+
+```bash
+pi install git:github.com/VarunGaikwad/preapexis-pi-kit@master
+```
+
+After installing, restart Pi or reload extensions:
+
+```txt
+/reload
+```
+
+### Install from a local clone
+
 Clone this repository:
 
 ```bash
@@ -45,19 +75,55 @@ Install or link it with Pi:
 pi install -l .
 ```
 
-Or install directly from GitHub:
-
-```bash
-pi install git:github.com/VarunGaikwad/preapexis-pi-kit@master
-```
-
-After installing, restart Pi or reload extensions:
+Then restart Pi or reload extensions:
 
 ```txt
 /reload
 ```
 
 ## Updating
+
+### Update from npm
+
+If installed from npm, run:
+
+```bash
+pi install npm:preapexis-pi-kit
+```
+
+Then reload Pi:
+
+```txt
+/reload
+```
+
+### Update from GitHub
+
+If installed from GitHub, run:
+
+```bash
+pi install git:github.com/VarunGaikwad/preapexis-pi-kit@master
+```
+
+Then reload Pi:
+
+```txt
+/reload
+```
+
+### Update a local linked copy
+
+If installed with local link mode, pull the latest changes in the local repo:
+
+```bash
+git pull
+```
+
+Then reload Pi:
+
+```txt
+/reload
+```
 
 To update from GitHub, run:
 
