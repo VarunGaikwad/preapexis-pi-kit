@@ -2,57 +2,67 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 type EventContext = Parameters<Parameters<ExtensionAPI["on"]>[1]>[1];
 
+const PREAPEXIS_ART = [
+  "██████╗ ██████╗ ███████╗ █████╗ ██████╗ ███████╗██╗  ██╗██╗███████╗",
+  "██╔══██╗██╔══██╗██╔════╝██╔══██╗██╔══██╗██╔════╝╚██╗██╔╝██║██╔════╝",
+  "██████╔╝██████╔╝█████╗  ███████║██████╔╝█████╗   ╚███╔╝ ██║███████╗",
+  "██╔═══╝ ██╔══██╗██╔══╝  ██╔══██║██╔═══╝ ██╔══╝   ██╔██╗ ██║╚════██║",
+  "██║     ██║  ██║███████╗██║  ██║██║     ███████╗██╔╝ ██╗██║███████║",
+  "╚═╝     ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚══════╝╚═╝  ╚═╝╚═╝╚══════╝"
+];
+
+const COMPACT_HEADER = "π  PreApeXis  π";
+
+const RAINBOW = [
+  [255, 90, 90],
+  [255, 170, 70],
+  [255, 230, 90],
+  [90, 220, 130],
+  [90, 190, 255],
+  [180, 130, 255]
+] as const;
+
 function rgb(text: string, r: number, g: number, b: number): string {
-  return `\x1b[38;2;${r};${g};${b}m${text}\x1b[0m`;
+  return `\x1b[1;38;2;${r};${g};${b}m${text}\x1b[0m`;
+}
+
+function rainbowText(text: string): string {
+  let colorIndex = 0;
+
+  return [...text]
+    .map((char) => {
+      if (char === " ") return char;
+
+      const [r, g, b] = RAINBOW[colorIndex % RAINBOW.length];
+      colorIndex += 1;
+
+      return rgb(char, r, g, b);
+    })
+    .join("");
 }
 
 function rainbowPi(): string {
-  return [
-    rgb("π", 255, 80, 80),
-    rgb("π", 255, 170, 60),
-    rgb("π", 255, 230, 80),
-    rgb("π", 80, 220, 120),
-    rgb("π", 80, 180, 255),
-    rgb("π", 180, 120, 255)
-  ].join("");
-}
-
-function centerLine(
-  left: string,
-  title: string,
-  right: string,
-  width: number
-): string {
-  const plainLength = title.length + 8;
-  const space = Math.max(2, Math.floor((width - plainLength) / 2));
-
-  return `${left} ${" ".repeat(space)}${title}${" ".repeat(space)} ${right}`;
+  return rainbowText("π");
 }
 
 export default function (pi: ExtensionAPI): void {
   function applyBrandUI(ctx: EventContext): void {
     if (!ctx.hasUI || ctx.mode !== "tui") return;
 
-    ctx.ui.setTitle("π · PreApexis Pi Kit");
+    ctx.ui.setTitle("PreApeXis");
 
     ctx.ui.setHeader((_tui, theme) => ({
       render(width: number): string[] {
-        const left = rainbowPi();
-        const right = rainbowPi();
+        if (width < 90) {
+          return [
+            rainbowText(COMPACT_HEADER),
+            theme.fg("dim", "safe changes · clear plans")
+          ];
+        }
 
         return [
-          "",
-          centerLine(
-            left,
-            theme.bold(theme.fg("accent", "PreApexis Pi Kit")),
-            right,
-            width
-          ),
-          theme.fg(
-            "dim",
-            "                 calm coding · safe changes · clear plans"
-          ),
-          ""
+          ...PREAPEXIS_ART.map((line) => rainbowText(line)),
+          theme.fg("dim", "safe changes · clear plans")
         ];
       },
       invalidate() {}
@@ -68,7 +78,7 @@ export default function (pi: ExtensionAPI): void {
         `${rainbowPi()} coding`,
         `${rainbowPi()} checking`
       ],
-      intervalMs: 250
+      intervalMs: 300
     });
   }
 
@@ -77,10 +87,10 @@ export default function (pi: ExtensionAPI): void {
   });
 
   pi.registerCommand("brand", {
-    description: "Re-apply PreApexis brand UI",
+    description: "Re-apply PreApeXis brand UI",
     handler: async (_args, ctx) => {
       applyBrandUI(ctx);
-      ctx.ui.notify("PreApexis brand UI applied.", "info");
+      ctx.ui.notify("PreApeXis brand UI applied.", "info");
     }
   });
 
