@@ -59,6 +59,28 @@ A personalized kit for the [pi-coding-agent](https://github.com/earendil-works/p
   pi install -l /path/to/preapexis-pi-kit
   ```
 
+## Updating
+
+Whenever new changes are pushed to the `master` branch on GitHub, re-run the same install command to pull the latest version:
+
+```bash
+pi install git:github.com/VarunGaikwad/preapexis-pi-kit@master
+```
+
+This re-downloads the package from the `master` branch and replaces the previously installed version in place — no uninstall step needed.
+
+After the command completes, reload the extensions inside pi so the new code takes effect:
+
+```
+/reload
+```
+
+> **Tip:** If you are unsure whether you have the latest version, check the commit history on GitHub at  
+> `https://github.com/VarunGaikwad/preapexis-pi-kit/commits/master`  
+> and compare it against the last time you ran `pi install`.
+
+---
+
 ## Usage
 
 ### Prompt‑based workflow
