@@ -1,10 +1,7 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
-type EventContext = Parameters<Parameters<ExtensionAPI["on"]>[1]>[1];
-
 export default function (pi: ExtensionAPI): void {
   const CHECKPOINT_PREFIX = "pi-checkpoint";
-  const BRANCH_STATUS_KEY = "git-guard-branch";
 
   async function git(
     cwd: string,
@@ -49,29 +46,6 @@ export default function (pi: ExtensionAPI): void {
     return stdout.trim().length > 0;
   }
 
-  async function updateBranchStatus(ctx: EventContext): Promise<void> {
-    if (!ctx.hasUI) return;
-
-    if (!(await isGitRepo(ctx.cwd))) {
-      ctx.ui.setStatus(BRANCH_STATUS_KEY, undefined);
-      return;
-    }
-
-    const branch = await getBranch(ctx.cwd);
-    const dirty = await isDirty(ctx.cwd);
-    const marker = dirty ? "*" : "";
-
-    if (branch) {
-      ctx.ui.setStatus(BRANCH_STATUS_KEY, `⎇ ${branch}${marker}`);
-    } else {
-      ctx.ui.setStatus(BRANCH_STATUS_KEY, "⎇ detached");
-    }
-  }
-
-  pi.on("session_start", async (_event, ctx) => {
-    await updateBranchStatus(ctx);
-  });
-
   pi.on("before_agent_start", async (_event, ctx) => {
     if (!ctx.hasUI || !(await isGitRepo(ctx.cwd))) return;
 
@@ -81,8 +55,6 @@ export default function (pi: ExtensionAPI): void {
         "warning"
       );
     }
-
-    await updateBranchStatus(ctx);
   });
 
   pi.on("tool_call", async (event, ctx) => {
@@ -158,13 +130,5 @@ export default function (pi: ExtensionAPI): void {
     }
 
     return undefined;
-  });
-
-  pi.on("tool_result", async (event, ctx) => {
-    if (!ctx.hasUI) return;
-
-    if (event.toolName === "bash") {
-      await updateBranchStatus(ctx);
-    }
   });
 }
