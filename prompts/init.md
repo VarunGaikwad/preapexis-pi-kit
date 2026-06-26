@@ -1,8 +1,12 @@
+# Initialize Repository Understanding
+
 Initialize your understanding of this repository.
 
-Do not edit files yet.
+Do not edit files.
 
 Your job is to inspect the project and produce a clear onboarding report for future work.
+
+If the repository is large, inspect the most important files first and clearly mention what was not inspected.
 
 ## Steps
 
@@ -86,5 +90,9 @@ Suggest repo-specific rules that should be added to AGENTS.md or team instructio
 # Open Questions
 
 List anything unclear or missing.
+
+# Inspection Notes
+
+Mention important files or areas that were not inspected.
 
 Do not modify the repository unless I explicitly ask.

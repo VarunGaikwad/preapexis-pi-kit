@@ -9,6 +9,8 @@ description: Reviews frontend code for accessibility, responsiveness, performanc
 
 Use this skill when reviewing or improving frontend quality.
 
+Do not edit files unless explicitly asked.
+
 ## Review Areas
 
 Check for:
@@ -56,6 +58,14 @@ Look for:
 - layout shift risks
 - over-fetching data
 
+## Rules
+
+- Prefer specific findings with file paths.
+- Do not report generic advice as a finding.
+- If unsure, mark it as a question.
+- Prioritize user-visible issues first.
+- Suggest safe, small follow-up fixes.
+
 ## Output
 
 Return:
@@ -72,4 +82,4 @@ Return:
 
 # Safe Follow-Up Changes
 
-Do not edit files unless explicitly asked.
+# Open Questions

@@ -1,129 +1,303 @@
 # preapexis-pi-kit
 
-A personalized kit for the [pi-coding-agent](https://github.com/earendil-works/pi-coding-agent) that bundles extensions, prompts, skills, and themes to streamline AI‑assisted development workflows.
+A personalized kit for the [Pi Agent Harness](https://github.com/earendil-works/pi) that bundles extensions, prompts, skills, and themes to improve AI-assisted coding workflows.
 
 ## What’s inside
 
-- **extensions/** – TypeScript extensions that add custom behavior to the agent:
-  - `safety.ts` – guards against risky commands (rm -rf, sudo, chmod 777, etc.) and creates checkpoints before edits.
-  - `team.ts` – injects shared working‑rule reminders (small diffs, read‑first, no secrets, etc.).
-  - `workflow.ts` – provides slash commands (`/plan`, `/save-plan`, `/implement`, `/commit`, `/review`, `/security`) that guide you through the prompt‑based workflow.
-  - `gitguard.ts` – warns on a dirty working tree, creates git checkpoints, blocks force‑push, confirms reset --hard, and shows the current branch in the status bar.
-  - `status.ts` – shows useful info in the footer: branch, model, mode, test status, and repo trust state.
-- **prompts/** – ready‑to‑use prompt templates for common tasks:
-  - `plan.md` – create a read‑only implementation plan.
-  - `save-plan.md` – turn a plan into a markdown file.
-  - `implement.md` – implement a saved plan.
-  - `commit.md` – generate a conventional, explainable git commit message.
-  - `review-safe.md` – run a safety‑focused code review.
-  - `security.md` – run a security‑focused audit.
-- **skills/** – reusable skill packs (e.g., frontend‑onboarding, frontend‑quality, styling‑system, safe‑coding, etc.) that can be attached to agents.
-- **themes/** – visual themes (including `safe-dark.json`) for the PI UI.
-- **package.json** – declares the kit as a pi‑package and lists peer dependencies.
-- **settings.json** – default configuration (theme, trusted‑policy, folder locations).
+- **extensions/** – TypeScript extensions that add custom behavior to Pi:
+  - `safety.ts` – blocks risky shell commands, protects secrets, blocks unsafe paths, and injects safety rules.
+  - `git-guard.ts` – warns on dirty Git worktrees, blocks force-push, confirms `git reset --hard`, creates checkpoint branches before edits, and shows the current branch.
+  - `status.ts` – shows useful footer info such as model, mode, repo trust state, and test status.
+  - `prompts.ts` – adds `/prompts`, a small menu listing available prompt workflows.
+  - `brand-ui.ts` – adds custom Pi branding/UI.
+
+- **prompts/** – prompt templates for common workflows:
+  - `init.md` – inspect a repository and create an onboarding report.
+  - `plan.md` – create a read-only implementation plan with batches, model choice, and effort guidance.
+  - `save-plan.md` – save a generated plan as a markdown file.
+  - `implement.md` – implement a saved or pasted plan.
+  - `commit.md` – generate a conventional commit message from current Git changes.
+  - `review-safe.md` – run a safe read-only project review.
+  - `security.md` – run a read-only security review.
+
+- **skills/** – reusable skills for focused agent behavior:
+  - `safe-coding`
+  - `component-implementation`
+  - `frontend-onboarding`
+  - `frontend-quality`
+
+- **themes/** – custom Pi themes.
+
+- **package.json** – declares this repository as a Pi package.
 
 ## Installation
 
-1. Ensure you have the [pi-coding-agent](https://github.com/earendil-works/pi-coding-agent) installed (via `npm i -g @earendil-works/pi-coding-agent` or your preferred method).
-2. Clone or copy this repository into your workspace.
-3. From the repository root, link the kit as a local pi‑package:
+Clone this repository:
 
-   ```bash
-   pi link
-   ```
+```bash
+git clone https://github.com/VarunGaikwad/preapexis-pi-kit.git
+cd preapexis-pi-kit
+```
 
-   (or run `pi install ./` if you published it to a local registry).
+Install or link it with Pi:
 
-4. Restart the PI editor/reload extensions. The kit’s extensions, prompts, skills, and themes will be automatically available.
+```bash
+pi install -l .
+```
 
-### Alternative installation methods
-
-- Install directly from GitHub (master branch):
-
-  ```bash
-  pi install git:github.com/VarunGaikwad/preapexis-pi-kit@master
-  ```
-
-- Install a local clone in link mode using the `-l` flag:
-
-  ```bash
-  # Clone the repo first if you haven't already
-  git clone https://github.com/VarunGaikwad/preapexis-pi-kit.git
-  cd preapexis-pi-kit
-  pi install -l .
-  ```
-
-  Or, if you already have a copy elsewhere:
-
-  ```bash
-  pi install -l /path/to/preapexis-pi-kit
-  ```
-
-## Updating
-
-Whenever new changes are pushed to the `master` branch on GitHub, re-run the same install command to pull the latest version:
+Or install directly from GitHub:
 
 ```bash
 pi install git:github.com/VarunGaikwad/preapexis-pi-kit@master
 ```
 
-This re-downloads the package from the `master` branch and replaces the previously installed version in place — no uninstall step needed.
+After installing, restart Pi or reload extensions:
 
-After the command completes, reload the extensions inside pi so the new code takes effect:
-
-```
+```txt
 /reload
 ```
 
-> **Tip:** If you are unsure whether you have the latest version, check the commit history on GitHub at  
-> `https://github.com/VarunGaikwad/preapexis-pi-kit/commits/master`  
-> and compare it against the last time you ran `pi install`.
+## Updating
 
----
+To update from GitHub, run:
+
+```bash
+pi install git:github.com/VarunGaikwad/preapexis-pi-kit@master
+```
+
+Then reload Pi:
+
+```txt
+/reload
+```
 
 ## Usage
 
-### Prompt‑based workflow
+### Prompt workflow
 
-1. **Plan** – Run the `plan` prompt, paste your feature request or bug description where it says `{USER_REQUEST}`, and let the agent produce a structured plan.
-2. **Save** – Run the `save-plan` prompt, paste the generated plan where it says `{PLAN_CONTENT}`; the agent will write it to `doc/plan/YYYY-MM-DD‑<slug>.md` and optionally add a reference to `AGENTS.md`.
-3. **Implement** – Run the `implement` prompt, paste the plan (or provide the path to the saved markdown file). The agent will implement the steps, run tests, and report progress.
-4. **Commit** – After you’re satisfied, run the `commit` prompt; it will inspect `git diff` and suggest a conventional commit message with a plain‑language explanation and technical details.
-5. **Review** – Use `review-safe` for a general safety review or `security` for a focused security audit.
+Recommended flow:
 
-### Slash commands (provided by the `workflow` extension)
+```txt
+/init
+/plan <your request>
+/save-plan <paste generated plan>
+/implement <saved plan path or pasted plan>
+/commit
+```
 
-- `/plan` – Shows a reminder on how to use the `plan` prompt.
-- `/save-plan` – Shows how to save a plan.
-- `/implement` – Shows how to implement a plan.
-- `/commit` – Shows how to generate a commit message.
-- `/review` – Shows how to run a safety review.
-- `/security` – Shows how to run a security review.
-- `/workflows` – Lists all workflow shortcuts.
+Use review prompts when needed:
 
-### Extensions at a glance
+```txt
+/review-safe
+/security
+```
 
-- **safety** – Blocks dangerous shell commands, creates git checkpoints before file edits, and adds safety rules to the system prompt.
-- **team** – Adds a permanent reminder of the team’s working conventions to every agent session.
-- **gitguard** – Warns on a dirty repo, creates backup branches before risky edits, blocks `git push --force`, confirms `git reset --hard`, and shows the current branch (with a `*` when dirty) in the status bar.
-- **status** – Displays the current git branch, the active model (e.g., `claude/sonnet-3-5`), the mode (`safe`), test status (`not run` / `passed` / `failed`), and repo trust state (`trusted` / `untrusted`). Includes helper commands `/test-pass`, `/test-fail`, `/test-none` to manually update the test status.
+### `/prompts`
 
-## Customization
+Run:
 
-- **Themes**: Switch via the UI or edit `settings.json` to point to a different theme file in `themes/`.
-- **Settings**: Adjust `defaultProjectTrust`, enable/disable telemetry, etc., in `settings.json`.
-- **Extensions**: Enable/disable or configure individual extensions by editing their source in `extensions/` (re‑link after changes).
+```txt
+/prompts
+```
+
+This shows all available prompt workflows and how to use them.
+
+## Prompt details
+
+### `/init`
+
+Reads the project and creates an onboarding report.
+
+Use this when opening a new repo or unfamiliar feature area.
+
+### `/plan`
+
+Creates a read-only plan.
+
+The plan includes:
+
+- implementation batches
+- likely files to change
+- risk level
+- recommended model
+- recommended effort level
+- approval needs
+- final execution summary
+
+Example summary:
+
+```txt
+Use Haiku with low effort for batches 1 and 2.
+Use Sonnet with medium effort for batches 3 and 4.
+Use Opus with high effort for batch 5.
+```
+
+### `/save-plan`
+
+Saves a generated plan to:
+
+```txt
+docs/plans/YYYY-MM-DD-plan-name.md
+```
+
+It asks before editing `AGENTS.md`.
+
+### `/implement`
+
+Implements a saved or pasted plan.
+
+It should:
+
+- follow the plan closely
+- keep changes small
+- ask if something is unclear
+- run tests, lint, or typecheck when available
+- summarize what changed
+
+### `/commit`
+
+Reads Git changes and suggests a commit message.
+
+It does not commit automatically.
+
+### `/review-safe`
+
+Runs a read-only project review.
+
+### `/security`
+
+Runs a read-only security review.
+
+## Extensions
+
+### safety.ts
+
+General safety layer.
+
+Protects against:
+
+- risky shell commands
+- reading or editing `.env` files
+- editing dependency folders
+- editing build output
+- editing `.git` internals
+- unsafe package install/remove commands without confirmation
+
+It also injects safety and clarification rules into the agent prompt.
+
+### git-guard.ts
+
+Git-specific safety layer.
+
+Handles:
+
+- dirty working tree warning
+- branch display with `*` when dirty
+- force-push blocking
+- `git reset --hard` confirmation
+- checkpoint branch creation before risky edits
+
+Example status:
+
+```txt
+⎇ master*
+```
+
+The `*` means there are uncommitted changes.
+
+### status.ts
+
+Shows project status in the footer:
+
+```txt
+mode: safe model: openrouter/... repo: trusted tests: none
+```
+
+Commands:
+
+```txt
+/test-pass
+/test-fail
+/test-none
+```
+
+### prompts.ts
+
+Adds:
+
+```txt
+/prompts
+```
+
+This command lists available prompt workflows.
+
+### brand-ui.ts
+
+Adds custom Pi branding and visual UI customization.
+
+## Skills
+
+Each skill should live in its own folder:
+
+```txt
+skills/
+  safe-coding/
+    SKILL.md
+  component-implementation/
+    SKILL.md
+  frontend-onboarding/
+    SKILL.md
+  frontend-quality/
+    SKILL.md
+```
 
 ## Development
 
-To add a new extension, place a `.ts` file in `extensions/` and export a default function that receives the `ExtensionAPI`.  
-To add a new prompt, drop a `.md` file in `prompts/` – the agent will surface it in the prompt picker.  
-To add a new skill, place a folder with a `SKILL.md` (and optional assets) in `skills/`.
+To add a new extension:
+
+```txt
+extensions/my-extension.ts
+```
+
+It should export a default function that receives `ExtensionAPI`.
+
+To add a new prompt:
+
+```txt
+prompts/my-prompt.md
+```
+
+The filename becomes the slash command.
+
+Example:
+
+```txt
+prompts/security.md → /security
+```
+
+To add a new skill:
+
+```txt
+skills/my-skill/SKILL.md
+```
+
+## Package structure
+
+```txt
+preapexis-pi-kit/
+  package.json
+  LICENSE
+  README.md
+  extensions/
+  prompts/
+  skills/
+  themes/
+```
 
 ## License
 
-ISC – see the `LICENSE` file for details.
+ISC. See the `LICENSE` file for details.
 
 ---
 
-*Built with ❤️ for the pi‑coding‑agent ecosystem.*
+Built for a safer, cleaner Pi coding-agent workflow.

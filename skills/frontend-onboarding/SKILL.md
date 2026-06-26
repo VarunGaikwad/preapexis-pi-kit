@@ -9,6 +9,8 @@ description: Understands the frontend app structure, framework, routing, build t
 
 Use this skill before making frontend changes in an unfamiliar codebase.
 
+This skill is read-only. Do not edit files during onboarding unless explicitly asked.
+
 ## Inspect First
 
 Read the most relevant files:
@@ -44,11 +46,12 @@ Find and summarize:
 
 ## Safety Rules
 
-- Do not change global styles without explaining the impact.
-- Do not introduce new UI libraries unless explicitly asked.
+- Do not change global styles.
+- Do not introduce new UI libraries.
 - Do not change routing, auth, or data-fetching behavior casually.
 - Do not edit generated files or build output.
 - Prefer existing patterns over new abstractions.
+- If the frontend structure is unclear, ask questions before suggesting changes.
 
 ## Output
 
@@ -70,4 +73,4 @@ Return:
 
 # Suggested Frontend Agent Rules
 
-Do not edit files during onboarding unless explicitly asked.
+# Open Questions

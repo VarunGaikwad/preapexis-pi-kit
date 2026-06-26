@@ -1,6 +1,6 @@
 # Save Plan as Markdown
 
-This prompt takes a plan and saves it as a markdown file.
+Save the plan below as a markdown file.
 
 ## Plan to save
 
@@ -8,20 +8,28 @@ This prompt takes a plan and saves it as a markdown file.
 
 ## Your task
 
-1. Read the project root to check if `AGENTS.md` exists.
-2. If `AGENTS.md` exists:
-   - Read it.
-   - Add a short reference to this plan at the end (or in a Plans section).
-   - Save the plan itself as `doc/plan/YYYY-MM-DD-plan-name.md`.
-3. If `AGENTS.md` does not exist:
-   - Create the folder `doc/plan/` if needed.
-   - Save the plan as `doc/plan/YYYY-MM-DD-plan-name.md`.
+1. Read the project root.
+2. Check whether a `docs/` folder exists.
+3. Create `docs/plans/` if needed.
+4. Save the plan as:
+
+```txt
+docs/plans/YYYY-MM-DD-plan-name.md
+```
+
+5. If `AGENTS.md` exists, ask before adding a reference to it.
 
 ## File naming
 
-Pick a slug from the plan title. Use today's date in the filename.
+Pick a short slug from the plan title.
 
-Example: `doc/plan/2026-06-25-add-login-flow.md`
+Use today's date in the filename.
+
+Example:
+
+```txt
+docs/plans/2026-06-25-add-login-flow.md
+```
 
 ## Output structure for the plan file
 
@@ -32,18 +40,26 @@ Example: `doc/plan/2026-06-25-add-login-flow.md`
 
 ## Context
 
-## Steps
+## Assumptions
+
+## Batches
 
 ## Files to change
 
 ## Risks or open questions
 
 ## Success criteria
+
+## Final execution summary
+
+## Recommended run order
 ```
 
 ## Rules
 
 - Do not change the meaning of the plan.
 - Fix formatting only.
-- Create missing folders.
-- Keep `AGENTS.md` reference short: title + link to plan file.
+- Create missing folders if needed.
+- Do not edit `AGENTS.md` unless the user approves.
+- If a plan file with the same name already exists, ask before overwriting.
+- At the end, report the saved file path.

@@ -2,44 +2,99 @@
 
 Review the project for security issues. Do not edit any files.
 
+## Goal
+
+Find real security risks in the project with clear evidence.
+
 ## Focus areas
 
+Check for:
+
 - Secret leakage
+- Hardcoded API keys or tokens
 - Unsafe shell commands
-- Injection risks
+- Command injection
+- SQL injection
+- XSS or HTML injection
 - Auth or permission bugs
 - Insecure dependencies
 - Unsafe file handling
 - Logging sensitive data
-- Missing validation
+- Missing input validation
+- Weak error handling
+- Unsafe use of `eval`, dynamic imports, or script execution
+- Dangerous deployment or CI/CD configuration
 
 ## How to review
 
 1. Read the relevant files and changes.
-2. Check for the issues listed above.
-3. Look for common mistakes: hardcoded keys, SQL injection, command injection, unsafe eval, missing input validation, weak permissions, verbose error messages, secrets in logs.
+2. Check configuration, scripts, API routes, auth code, and file handling code.
+3. Look for hardcoded secrets, unsafe command usage, weak validation, and risky permissions.
+4. If package/security commands are available, suggest them, but do not run install or destructive commands.
+5. Report only issues with evidence.
+6. If unsure, report it under **Questions**, not as a confirmed finding.
 
 ## Output format
 
-For each finding, report:
-
 ```markdown
+# Security Review Report
+
+## Summary
+
+Briefly summarize the overall security state.
+
+## Findings
+
 ### <severity>: <title>
 
 - **File:** `path/to/file`
-- **Line:** `<line number or range>`
+- **Line:** `<line number or range if available>`
 - **Issue:** Short description of the problem.
+- **Evidence:** What code or behavior shows the issue.
 - **Risk:** What could go wrong.
 - **Fix:** Recommended change.
+
+## Questions
+
+List anything suspicious but not confirmed.
+
+## Suggested Checks
+
+List safe commands the user can run, for example:
+
+- `npm audit`
+- `npm run lint`
+- `npm test`
+
+Do not run risky commands without approval.
+
+## Final Notes
+
+Short closing summary.
 ```
 
-Use severity levels: `Critical`, `High`, `Medium`, `Low`.
+## Severity levels
 
-If no issues are found, say: "No obvious security issues found."
+Use:
+
+- `Critical`
+- `High`
+- `Medium`
+- `Low`
+
+If no issues are found, say:
+
+```txt
+No obvious security issues found.
+```
 
 ## Rules
 
-- Read only. No edits.
-- Be specific. Include file paths and line numbers when possible.
+- Read only.
+- Do not edit files.
+- Do not install packages.
+- Do not run destructive commands.
+- Be specific.
+- Include file paths and line numbers when possible.
 - Do not report theoretical issues without evidence.
-- If unsure, flag as a question rather than a finding.
+- Do not read `.env` or secret files.

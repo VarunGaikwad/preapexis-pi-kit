@@ -2,94 +2,55 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import * as path from "path";
 
 /**
- * Safeguard extension for pi.
+ * General safety extension for Pi.
  *
- * Goals:
- * - Block destructive shell commands unless the user explicitly approves them.
- * - Prevent accidental edits or reads of sensitive files and paths.
- * - Inject safety rules into the agent's system prompt.
- * - Keep a clear audit trail when risky actions are approved.
+ * git-guard.ts handles Git-specific safety.
+ * This file handles:
+ * - risky shell commands
+ * - secret file protection
+ * - protected generated/dependency paths
+ * - safety instructions in the system prompt
  */
 
-export default function (pi: ExtensionAPI) {
-  // --------------------------------------------------------------------------
-  // Command patterns that can destroy data, run untrusted code, alter system
-  // or project state unexpectedly, or require explicit user approval. Each
-  // regex should match the requested risky patterns.
-  // --------------------------------------------------------------------------
+export default function (pi: ExtensionAPI): void {
+  // Do NOT include git push/reset checks here.
+  // Those belong in git-guard.ts to avoid duplicate prompts.
   const riskyCommands = [
-    // Any recursive/forced removal
-    /\brm\s+(-[rf]+\s*)+/i,
+    // Recursive/forced remove
+    /\brm\s+(-[a-z]*[rf][a-z]*|--recursive|--force)\b/i,
 
-    // Any sudo usage
+    // Admin / permission risky
     /\bsudo\b/i,
+    /\bchmod\b.*\b777\b/i,
 
-    // Overly permissive chmod
-    /\bchmod\b.*777/i,
+    // Running remote scripts
+    /\bcurl\b.*\|\s*(sh|bash|zsh)\b/i,
+    /\bwget\b.*\|\s*(sh|bash|zsh)\b/i,
 
-    // Piping curl/wget output into a shell
-    /\bcurl\b.*\|\s*(sh|bash|zsh)/i,
-    /\bwget\b.*\|\s*(sh|bash|zsh)/i,
-
-    // Remote shell execution via curl/wget
-    /\b(curl|wget)\b.*\b(sh|bash|zsh)\s+-c/i,
-
-    // Force-pushing or destructive git history rewrites
-    /\bgit\s+push\s+.*(--force|-f)\b/i,
-    /\bgit\s+(reset\s+--hard|clean\s+-fd|filter-branch|reflog\s+expire)\b/i,
-
-    // Package installation
+    // Package install/remove
     /\b(npm|yarn|pnpm)\s+(install|add|remove|uninstall|ci)\b/i,
     /\b(pip|pip3)\s+(install|uninstall)\b/i,
     /\b(apt-get|apt)\s+(install|remove|purge)\b/i,
     /\bbrew\s+(install|uninstall|remove)\b/i,
 
-    // Docker cleanup that removes containers, images, volumes, networks
+    // Docker cleanup
     /\bdocker\s+system\s+prune/i,
     /\bdocker\s+(container|image|volume|network)\s+prune/i,
 
-    // Direct disk overwrite
+    // Disk / filesystem destructive
     /\bdd\s+if=.+of=\/dev\/[sh]d[a-z]/i,
-
-    // Filesystem creation and partitioning
     /\bmkfs\b/i,
     /\b(fdisk|parted)\b/i,
-
-    // System shutdown/reboot
-    /\bshutdown\b|\breboot\b|\bpoweroff\b/i,
-
-    // Writing raw bytes directly to a disk device
     />\s*\/dev\/[sh]d[a-z]/i,
 
-    // Windows-specific destructive commands
+    // Shutdown/reboot
+    /\bshutdown\b|\breboot\b|\bpoweroff\b/i,
+
+    // Windows destructive commands
     /\bformat\s+[a-z]:/i,
     /\bdiskpart\b/i,
     /\brd\s+\/s\s+\/q\b/i,
-    /\bdel\s+\/f\s+\/s\s+\/q\b/i,
-  ];
-
-  // --------------------------------------------------------------------------
-  // Paths that should rarely be touched by an agent. Matching is done on whole
-  // path segments so that innocent files like "my.env.config.ts" are not
-  // blocked.
-  // --------------------------------------------------------------------------
-  const protectedPaths = [
-    ".env",
-    ".env.local",
-    ".env.production",
-    ".env.development",
-    ".env.test",
-    ".envrc",
-    ".git",
-    "node_modules",
-    "dist",
-    "build",
-    "out",
-    "coverage",
-    "package-lock.json",
-    "pnpm-lock.yaml",
-    "yarn.lock",
-    "bun.lockb",
+    /\bdel\s+\/f\s+\/s\s+\/q\b/i
   ];
 
   const secretFileNames = [
@@ -98,76 +59,90 @@ export default function (pi: ExtensionAPI) {
     ".env.production",
     ".env.development",
     ".env.test",
-    ".envrc",
+    ".envrc"
   ];
 
-  /**
-   * Check whether a file path touches a protected directory or file.
-   * Returns the matched protected entry, or undefined if safe.
-   */
-  function isProtectedPath(filePath: string): string | undefined {
-    const normalized = path.normalize(filePath);
-    const segments = normalized.split(path.sep);
+  const blockedEditSegments = [
+    ".git",
+    "node_modules",
+    "dist",
+    "build",
+    "out",
+    "coverage"
+  ];
 
-    return protectedPaths.find((protectedEntry) =>
-      segments.some(
-        (segment) =>
-          segment === protectedEntry ||
-          segment === protectedEntry.replace(/\/$/, "")
-      )
-    );
+  const confirmEditFileNames = [
+    "package-lock.json",
+    "pnpm-lock.yaml",
+    "yarn.lock",
+    "bun.lockb"
+  ];
+
+  function getPathSegments(filePath: string): string[] {
+    return path
+      .normalize(filePath)
+      .replaceAll("\\", "/")
+      .split("/")
+      .filter(Boolean);
   }
 
-  /**
-   * Check whether a file path is a secret env file.
-   */
-  function isSecretFile(filePath: string): string | undefined {
-    const normalized = path.normalize(filePath);
-    const fileName = path.basename(normalized);
-    return secretFileNames.find((name) => fileName === name);
+  function getFileName(filePath: string): string {
+    const segments = getPathSegments(filePath);
+    return segments.at(-1) ?? "";
   }
 
-  /**
-   * Determine if a shell command looks risky and should be confirmed.
-   */
-  function isRisky(command: string): boolean {
+  function findSecretFile(filePath: string): string | undefined {
+    const fileName = getFileName(filePath);
+    return secretFileNames.find((name) => name === fileName);
+  }
+
+  function findBlockedEditSegment(filePath: string): string | undefined {
+    const segments = getPathSegments(filePath);
+    return blockedEditSegments.find((entry) => segments.includes(entry));
+  }
+
+  function findConfirmEditFile(filePath: string): string | undefined {
+    const fileName = getFileName(filePath);
+    return confirmEditFileNames.find((name) => name === fileName);
+  }
+
+  function isRiskyCommand(command: string): boolean {
     return riskyCommands.some((pattern) => pattern.test(command));
   }
 
-  // --------------------------------------------------------------------------
-  // Inject safety rules into every agent session.
-  // --------------------------------------------------------------------------
   pi.on("before_agent_start", async (event) => {
     return {
       systemPrompt:
         event.systemPrompt +
         `
+    Safety rules:
+      - Make small, reviewable changes.
+      - Do not read or edit secret files such as .env files.
+      - Ask before installing or removing packages.
+      - Explain risky commands before running them.
+      - Prefer safe, additive changes.
+      - Run tests or type checks after code changes when available.
 
-Safety rules:
-- Make small, reviewable changes.
-- Do not edit secrets, env files, lockfiles, build output, coverage reports, or git internals unless explicitly asked.
-- Explain risky commands before running them.
-- Run tests or type checks after code changes when available.
-- Do not install packages, delete files, or rewrite history without clear user approval.
-- Prefer additive changes; avoid destructive updates.
-`,
+    Clarification rules:
+      - If the request is unclear, ask questions before editing files.
+      - Ask only important questions.
+      - Do not ask more than 5 questions.
+      - If the task is clear, continue without asking.
+      - Do not edit files until the user answers clarification questions.
+`
     };
   });
 
-  // --------------------------------------------------------------------------
-  // Inspect every tool call and block or confirm risky actions.
-  // --------------------------------------------------------------------------
   pi.on("tool_call", async (event, ctx) => {
-    // Bash safeguards --------------------------------------------------------
     if (event.toolName === "bash") {
       const command = String(event.input.command ?? "");
 
-      if (isRisky(command)) {
+      if (isRiskyCommand(command)) {
         if (!ctx.hasUI) {
           return {
             block: true,
             reason:
-              "Risky shell command blocked because no UI is available to confirm it.",
+              "Risky shell command blocked because no UI is available to confirm it."
           };
         }
 
@@ -177,54 +152,91 @@ Safety rules:
         );
 
         if (choice !== "Yes") {
-          return { block: true, reason: "Blocked by safeguard extension." };
+          return {
+            block: true,
+            reason: "Blocked by safety extension."
+          };
         }
 
-        console.log(`[safeguards] User approved risky command: ${command}`);
+        console.log(`[safety] User approved risky command: ${command}`);
       }
     }
 
-    // Write/edit safeguards --------------------------------------------------
-    if (event.toolName === "write" || event.toolName === "edit") {
-      const filePath = String(event.input.path ?? "");
-      const protectedHit = isProtectedPath(filePath);
-
-      if (protectedHit) {
-        const reason = `Protected path blocked: ${protectedHit}`;
-        if (ctx.hasUI) {
-          await ctx.ui.notify(reason, "warning");
-        }
-        return { block: true, reason };
-      }
-    }
-
-    // Read safeguards for secrets -------------------------------------------
     if (event.toolName === "read") {
       const filePath = String(event.input.path ?? "");
-      const secretHit = isSecretFile(filePath);
+      const secretHit = findSecretFile(filePath);
 
       if (secretHit) {
         const reason = `Reading secret file blocked: ${secretHit}`;
+
         if (ctx.hasUI) {
-          await ctx.ui.notify(reason, "warning");
+          ctx.ui.notify(reason, "warning");
         }
+
         return { block: true, reason };
+      }
+    }
+
+    if (event.toolName === "write" || event.toolName === "edit") {
+      const filePath = String(event.input.path ?? "");
+
+      const secretHit = findSecretFile(filePath);
+      if (secretHit) {
+        const reason = `Editing secret file blocked: ${secretHit}`;
+
+        if (ctx.hasUI) {
+          ctx.ui.notify(reason, "warning");
+        }
+
+        return { block: true, reason };
+      }
+
+      const blockedSegment = findBlockedEditSegment(filePath);
+      if (blockedSegment) {
+        const reason = `Protected path blocked: ${blockedSegment}`;
+
+        if (ctx.hasUI) {
+          ctx.ui.notify(reason, "warning");
+        }
+
+        return { block: true, reason };
+      }
+
+      const confirmFile = findConfirmEditFile(filePath);
+      if (confirmFile) {
+        if (!ctx.hasUI) {
+          return {
+            block: true,
+            reason: `Editing ${confirmFile} blocked because no UI is available to confirm it.`
+          };
+        }
+
+        const choice = await ctx.ui.select(
+          `Protected file edit detected:\n\n${filePath}\n\nAllow editing ${confirmFile}?`,
+          ["No", "Yes"]
+        );
+
+        if (choice !== "Yes") {
+          return {
+            block: true,
+            reason: `Editing ${confirmFile} cancelled by user.`
+          };
+        }
+
+        console.log(`[safety] User approved protected file edit: ${filePath}`);
       }
     }
 
     return undefined;
   });
 
-  // --------------------------------------------------------------------------
-  // Command users can run to verify the extension is active.
-  // --------------------------------------------------------------------------
   pi.registerCommand("safety", {
     description: "Show active safety rules",
     handler: async (_args, ctx) => {
       ctx.ui.notify(
-        "Safety enabled: risky bash confirmation, protected paths, .env protection, package install confirmation, docker prune confirmation, small diffs, no history rewrites.",
+        "Safety enabled: risky command confirmation, .env read/edit blocking, dependency/build path protection, and lockfile edit confirmation.",
         "info"
       );
-    },
+    }
   });
 }

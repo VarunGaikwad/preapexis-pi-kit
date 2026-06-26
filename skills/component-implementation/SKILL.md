@@ -9,6 +9,8 @@ description: Builds or modifies frontend components using the project's existing
 
 Use this skill when creating or modifying frontend UI components.
 
+Do not use this skill for backend-only changes, database work, deployment work, or general refactors unless they directly affect frontend components.
+
 ## Before Editing
 
 Inspect existing nearby components to understand:
@@ -21,6 +23,8 @@ Inspect existing nearby components to understand:
 - test style
 - story/demo pattern, if any
 
+If the component requirements are unclear, ask questions before editing.
+
 ## Component Rules
 
 - Prefer small, focused components.
@@ -31,6 +35,7 @@ Inspect existing nearby components to understand:
 - Reuse existing icons, spacing, colors, and typography tokens.
 - Do not add a new UI package unless explicitly asked.
 - Avoid large rewrites of existing components.
+- Match the project's existing component style.
 
 ## Accessibility Rules
 
@@ -54,13 +59,15 @@ Check:
 
 ## After Editing
 
-Run the narrowest relevant command:
+Run the narrowest relevant command if available:
 
 - component test
 - unit test
 - typecheck
 - lint
-- storybook check, if available
+- storybook check
+
+If checks are not available or cannot run, explain why.
 
 ## Output
 

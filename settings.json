@@ -1,8 +1,4 @@
 {
   "theme": "neon-guardian",
-  "defaultProjectTrust": "ask",
-  "extensions": ["extensions"],
-  "themes": ["themes"],
-  "skills": ["skills"],
-  "prompts": ["prompts"]
+  "defaultProjectTrust": "ask"
 }

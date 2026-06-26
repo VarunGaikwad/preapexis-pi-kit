@@ -1,69 +1,38 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
-type EventContext = Parameters<Parameters<ExtensionAPI["on"]>[1]>[1];
-
-const MINI_MASCOT = [
-  "╭────────────────────────────╮",
-  "│ π-AGENT · BUG INVADER      │",
-  "│   ▄ ▄   ◉ ─── ◉   ▄ ▄      │",
-  "│  ▀███▀  BUG HUNTING  ▀███▀ │",
-  "│ STATUS: REPO CLEAN         │",
-  "╰────────────────────────────╯"
-];
-
-const WORKING_INDICATOR = {
-  frames: [
-    "π scanning ·",
-    "π scanning ··",
-    "π scanning ···",
-    "π fixing ·",
-    "π fixing ··",
-    "π fixing ···"
-  ],
-  intervalMs: 250
-};
+const HEADER = ["π-AGENT · BUG INVADER", "◉ hunting bugs · repo clean"];
 
 export default function (pi: ExtensionAPI): void {
-  let mascotVisible = true;
-
-  function showMascot(ctx: EventContext): void {
-    if (!ctx.hasUI || !mascotVisible) return;
+  pi.on("session_start", async (_event, ctx) => {
+    if (ctx.mode !== "tui") return;
 
     ctx.ui.setTitle("π-AGENT · BUG INVADER");
 
-    ctx.ui.setWidget("team-mascot", MINI_MASCOT, {
-      placement: "aboveEditor"
+    ctx.ui.setHeader((_tui, theme) => ({
+      render(_width: number): string[] {
+        return [theme.fg("accent", HEADER[0]), theme.fg("dim", HEADER[1])];
+      },
+      invalidate() {}
+    }));
+
+    ctx.ui.setWorkingIndicator({
+      frames: [
+        "π scanning ·",
+        "π scanning ··",
+        "π scanning ···",
+        "π fixing ·",
+        "π fixing ··",
+        "π fixing ···"
+      ],
+      intervalMs: 250
     });
-
-    ctx.ui.setWorkingIndicator(WORKING_INDICATOR);
-  }
-
-  function hideMascot(ctx: EventContext): void {
-    if (!ctx.hasUI) return;
-
-    ctx.ui.setWidget("team-mascot", undefined);
-  }
-
-  pi.on("session_start", async (_event, ctx) => {
-    showMascot(ctx);
   });
 
-  pi.on("session_end", async (_event, ctx) => {
-    hideMascot(ctx);
-  });
-
-  pi.registerCommand("mascot", {
-    description: "Toggle the π-AGENT Bug Invader mascot",
+  pi.registerCommand("builtin-header", {
+    description: "Restore the default Pi header",
     handler: async (_args, ctx) => {
-      mascotVisible = !mascotVisible;
-
-      if (mascotVisible) {
-        showMascot(ctx);
-        ctx.ui.notify("π-AGENT mascot enabled", "info");
-      } else {
-        hideMascot(ctx);
-        ctx.ui.notify("π-AGENT mascot hidden", "info");
-      }
+      ctx.ui.setHeader(undefined);
+      ctx.ui.notify("Default Pi header restored", "info");
     }
   });
 }

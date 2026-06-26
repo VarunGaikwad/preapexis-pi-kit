@@ -2,13 +2,16 @@
 
 Analyze the current changes in this repository and propose a git commit message.
 
+Do not create the commit. Only suggest the message.
+
 ## How to read the changes
 
-Run the appropriate git commands to understand what changed, for example:
+Run safe git read commands only:
 
-- `git diff` for unstaged changes
-- `git diff --cached` for staged changes
-- `git status` for a quick overview
+- `git status`
+- `git diff`
+- `git diff --cached`
+- `git log --oneline -5` if useful for style
 
 If there is nothing staged and nothing unstaged, report that no changes are ready to commit.
 
@@ -16,29 +19,61 @@ If there is nothing staged and nothing unstaged, report that no changes are read
 
 Provide a commit message in this format:
 
-```
+```txt
 <type>: <short summary>
 
-<paragraph for non-technical readers>
+<plain-language explanation>
 
-<paragraph with technical details>
+<technical explanation>
 
 - <specific change 1>
 - <specific change 2>
 ```
 
-### Guidelines
+## Guidelines
 
-1. **Short summary** — one line, concise, written in the imperative mood, prefixed with a conventional commit type such as `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, or `style`.
-2. **Non-technical paragraph** — explain what changed and why in plain language. Avoid jargon. Anyone on the team should understand the purpose and impact.
-3. **Technical paragraph** — describe the implementation briefly enough that a developer can quickly understand what files or systems were touched and how.
-4. **Bullet list** — highlight the most important changes, decisions, or side effects.
+1. Use a conventional commit type:
+   - `feat`
+   - `fix`
+   - `refactor`
+   - `docs`
+   - `test`
+   - `chore`
+   - `style`
+   - `build`
+   - `ci`
 
-## Tone
+2. The short summary must be:
+   - one line
+   - concise
+   - imperative mood
+   - no period at the end
 
-- Be clear and direct.
-- Do not oversimplify to the point of losing meaning.
-- Do not overload the message with raw file names or diff fragments.
-- Avoid marketing language, emojis, and exclamation marks.
+3. The plain-language paragraph should explain what changed and why.
 
-If there are many unrelated changes, suggest splitting them into multiple commits and provide a message for each group.
+4. The technical paragraph should explain the implementation details briefly.
+
+5. The bullet list should include the most important changes.
+
+## Split commits
+
+If there are many unrelated changes, suggest splitting them into multiple commits.
+
+For each group, provide:
+
+```txt
+Commit 1:
+<message>
+
+Commit 2:
+<message>
+```
+
+## Rules
+
+- Do not commit.
+- Do not stage files.
+- Do not edit files.
+- Do not run destructive git commands.
+- Do not include secrets or long raw diffs in the message.
+- Keep the message clear and useful for humans.
