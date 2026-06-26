@@ -8,6 +8,7 @@ A personalized kit for the [Pi Agent Harness](https://github.com/earendil-works/
   - `safety.ts` – blocks risky shell commands, protects secrets, blocks unsafe paths, and injects safety rules.
   - `git-guard.ts` – warns on dirty Git worktrees, blocks force-push, confirms `git reset --hard`, creates checkpoint branches before edits, and shows the current branch.
   - `status.ts` – shows useful footer info such as model, mode, repo trust state, and test status.
+  - `usage-tracker.ts` – tracks session token usage and estimated cost, with `/usage` and `/usage-reset`.
   - `prompts.ts` – adds `/prompts`, a small menu listing available prompt workflows.
   - `brand-ui.ts` – adds custom Pi branding/UI.
 
