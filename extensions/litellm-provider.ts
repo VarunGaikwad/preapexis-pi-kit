@@ -3,29 +3,21 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 type LiteLlmModelInfo = {
   model_name?: string;
-  litellm_params?: {
-    model?: string;
-  };
   model_info?: {
     id?: string;
     name?: string;
     display_name?: string;
-    description?: string;
     max_tokens?: number;
     max_input_tokens?: number;
     context_window?: number;
     input_cost_per_token?: number;
     output_cost_per_token?: number;
     supports_vision?: boolean;
-    supports_function_calling?: boolean;
-    mode?: string;
   };
 };
 
 type OpenAiModel = {
   id?: string;
-  object?: string;
-  owned_by?: string;
 };
 
 type ModelPayload = {
@@ -45,10 +37,6 @@ type PiModel = {
   };
   contextWindow: number;
   maxTokens: number;
-  compat?: {
-    supportsDeveloperRole?: boolean;
-    supportsReasoningEffort?: boolean;
-  };
 };
 
 const PROVIDER_ID = "litellm";
@@ -59,8 +47,12 @@ export default async function (pi: ExtensionAPI): Promise<void> {
     process.env.LITELLM_BASE_URL ?? DEFAULT_BASE_URL
   );
 
-  async function registerLiteLlmProvider(): Promise<void> {
+  async function registerLiteLlmProvider(): Promise<number> {
     const models = await discoverModels(baseUrl);
+
+    if (models.length === 0) {
+      return 0;
+    }
 
     pi.registerProvider(PROVIDER_ID, {
       name: "LiteLLM",
@@ -69,20 +61,54 @@ export default async function (pi: ExtensionAPI): Promise<void> {
       api: "openai-completions",
       models
     });
+
+    return models.length;
   }
 
-  await registerLiteLlmProvider();
+  try {
+    const count = await registerLiteLlmProvider();
+
+    if (count > 0) {
+      console.log(`[litellm] Registered ${count} models from ${baseUrl}`);
+    } else {
+      console.log("[litellm] No models found. Provider was not registered.");
+    }
+  } catch (error) {
+    console.log(
+      [
+        "[litellm] Provider skipped.",
+        error instanceof Error ? error.message : String(error),
+        "Start LiteLLM and run /litellm-refresh."
+      ].join("\n")
+    );
+  }
 
   pi.registerCommand("litellm-refresh", {
     description: "Refresh LiteLLM models from the LiteLLM proxy",
     handler: async (_args, ctx) => {
       try {
-        await registerLiteLlmProvider();
+        const count = await registerLiteLlmProvider();
+
+        if (count === 0) {
+          ctx.ui.notify(
+            [
+              "LiteLLM refresh finished, but no models were found.",
+              "",
+              `Base URL: ${baseUrl}`,
+              "",
+              "Make sure LiteLLM is running."
+            ].join("\n"),
+            "warning"
+          );
+
+          return;
+        }
 
         ctx.ui.notify(
           [
             "LiteLLM models refreshed.",
             "",
+            `Models found: ${count}`,
             `Base URL: ${baseUrl}`,
             "",
             "Run /model to select a LiteLLM model."
@@ -129,26 +155,11 @@ async function discoverModels(baseUrl: string): Promise<PiModel[]> {
         return models;
       }
     } catch {
-      // Try the next endpoint.
+      // Try next endpoint.
     }
   }
 
-  const fallbackModels = getFallbackModels();
-
-  if (fallbackModels.length > 0) {
-    return fallbackModels;
-  }
-
-  throw new Error(
-    [
-      "Could not discover LiteLLM models.",
-      "",
-      `Tried: ${endpoints.join(", ")}`,
-      "",
-      "Make sure LiteLLM is running and set LITELLM_API_KEY if your proxy requires auth.",
-      "You can also set LITELLM_MODELS as a comma-separated fallback."
-    ].join("\n")
-  );
+  return getFallbackModels();
 }
 
 async function fetchModelPayload(url: string): Promise<ModelPayload> {
@@ -228,11 +239,7 @@ function modelFromPayloadItem(
       cacheWrite: 0
     },
     contextWindow,
-    maxTokens,
-    compat: {
-      supportsDeveloperRole: false,
-      supportsReasoningEffort: false
-    }
+    maxTokens
   };
 }
 
@@ -293,10 +300,6 @@ function getFallbackModels(): PiModel[] {
         cacheWrite: 0
       },
       contextWindow: 128000,
-      maxTokens: 4096,
-      compat: {
-        supportsDeveloperRole: false,
-        supportsReasoningEffort: false
-      }
+      maxTokens: 4096
     }));
 }
