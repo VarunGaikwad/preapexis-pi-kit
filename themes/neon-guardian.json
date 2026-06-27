@@ -29,7 +29,7 @@
     "thinkingText": "muted",
 
     "selectedBg": "panel2",
-    "userMessageBg": "panel",
+    "userMessageBg": "#1e293b",
     "userMessageText": "",
     "customMessageBg": "#0e7490",
     "customMessageText": "",

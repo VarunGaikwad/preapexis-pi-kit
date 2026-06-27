@@ -27,7 +27,7 @@
     "thinkingText": "muted",
 
     "selectedBg": "panel",
-    "userMessageBg": "panel",
+    "userMessageBg": "soft",
     "userMessageText": "",
     "customMessageBg": "panel",
     "customMessageText": "",
