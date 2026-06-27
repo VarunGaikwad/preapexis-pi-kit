@@ -16,6 +16,7 @@ type ShellCommand = {
 
 const RUN_CHOICE = "▶ Run selected updates";
 const CANCEL_CHOICE = "✕ Cancel";
+const UPDATE_STATUS_KEY = "preapexis-update-status";
 
 export default function (pi: ExtensionAPI): void {
   const options: UpdateOption[] = [
@@ -26,19 +27,19 @@ export default function (pi: ExtensionAPI): void {
         "npm install -g --ignore-scripts @earendil-works/pi-coding-agent@latest"
     },
     {
+      id: "pi-extensions",
+      label: "Update installed Pi packages/extensions",
+      shell: "pi update --extensions"
+    },
+    {
       id: "kit-local",
       label: "Re-link this local PreApeXis kit",
       shell: "pi install -l ."
     },
     {
-      id: "kit-github",
-      label: "Update PreApeXis Pi Kit from GitHub",
-      shell: "pi install git:github.com/VarunGaikwad/preapexis-pi-kit@master"
-    },
-    {
       id: "kit-npm",
       label: "Update PreApeXis Pi Kit from npm",
-      shell: "pi install npm:preapexis-pi-kit"
+      shell: "pi install npm:@preapexis/pi-kit"
     },
     {
       id: "project-npm",
@@ -58,6 +59,28 @@ export default function (pi: ExtensionAPI): void {
     return {
       command: "sh",
       args: ["-lc", command]
+    };
+  }
+
+  function startUpdateStatus(ctx: EventContext, label: string): () => void {
+    let seconds = 0;
+    let dots = 0;
+
+    ctx.ui.setStatus(UPDATE_STATUS_KEY, `update: ${label}...`);
+
+    const timer = setInterval(() => {
+      seconds += 1;
+      dots = (dots + 1) % 4;
+
+      ctx.ui.setStatus(
+        UPDATE_STATUS_KEY,
+        `update: ${label}${".".repeat(dots)} ${seconds}s`
+      );
+    }, 1000);
+
+    return () => {
+      clearInterval(timer);
+      ctx.ui.setStatus(UPDATE_STATUS_KEY, undefined);
     };
   }
 
@@ -151,10 +174,32 @@ export default function (pi: ExtensionAPI): void {
     ctx.ui.notify(`Running update:\n\n${option.shell}`, "info");
 
     const shell = shellCommand(option.shell);
+    const stopStatus = startUpdateStatus(ctx, option.label);
 
-    const result = await pi.exec(shell.command, shell.args, {
-      cwd: ctx.cwd
-    });
+    let result: Awaited<ReturnType<typeof pi.exec>>;
+
+    try {
+      result = await pi.exec(shell.command, shell.args, {
+        cwd: ctx.cwd
+      });
+    } catch (error) {
+      stopStatus();
+
+      ctx.ui.notify(
+        [
+          `Update failed: ${option.label}`,
+          "",
+          `Command: ${option.shell}`,
+          "",
+          error instanceof Error ? error.message : String(error)
+        ].join("\n"),
+        "error"
+      );
+
+      return false;
+    }
+
+    stopStatus();
 
     const stdout = result.stdout?.trim() ?? "";
     const stderr = result.stderr?.trim() ?? "";
