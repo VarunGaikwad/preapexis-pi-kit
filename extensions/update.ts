@@ -1,4 +1,4 @@
-// cSpell:words preapexis npm PowerShell
+// cSpell:words preapexis
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 type EventContext = Parameters<Parameters<ExtensionAPI["on"]>[1]>[1];
@@ -22,24 +22,13 @@ export default function (pi: ExtensionAPI): void {
   const options: UpdateOption[] = [
     {
       id: "pi",
-      label: "Update Pi CLI globally",
-      shell:
-        "npm install -g --ignore-scripts @earendil-works/pi-coding-agent@latest"
+      label: "Update Pi",
+      shell: "pi update"
     },
     {
-      id: "pi-extensions",
-      label: "Update installed Pi packages/extensions",
+      id: "extensions",
+      label: "Update Pi packages/extensions",
       shell: "pi update --extensions"
-    },
-    {
-      id: "kit-npm",
-      label: "Update PreApeXis Pi Kit from npm",
-      shell: "pi install npm:@preapexis/pi-kit"
-    },
-    {
-      id: "project-npm",
-      label: "Update current project npm packages",
-      shell: "npm update"
     }
   ];
 
@@ -232,7 +221,7 @@ export default function (pi: ExtensionAPI): void {
   }
 
   pi.registerCommand("update", {
-    description: "Update Pi, this Pi kit, or project packages",
+    description: "Update Pi or installed Pi packages/extensions",
     handler: async (_args, ctx) => {
       if (!ctx.hasUI) {
         console.log("The /update command requires the Pi UI.");
