@@ -8,7 +8,7 @@ const rl = readline.createInterface({ input, output });
 const message =
   process.env.npm_config_msg ||
   process.argv.slice(2).join(" ") ||
-  "chore: release";
+  "chore: update";
 
 function run(command, args) {
   console.log(`\n> ${command} ${args.join(" ")}\n`);
@@ -104,38 +104,41 @@ function updatePackageVersion(nextVersion) {
 }
 
 try {
-  const shouldBump = await askYesNo(
-    "Do you want to bump package version?",
-    true
-  );
-  let nextVersion = null;
+  const shouldPublish = await askYesNo("Do you want to publish to npm?", false);
+
   let tag = null;
 
-  if (shouldBump) {
-    const bumpType = await askVersionType();
-    const pkg = readJson("package.json");
+  if (shouldPublish) {
+    const shouldBump = await askYesNo(
+      "Do you want to bump package version?",
+      true
+    );
 
-    nextVersion = bumpVersion(pkg.version, bumpType);
-    tag = `v${nextVersion}`;
+    if (shouldBump) {
+      const bumpType = await askVersionType();
+      const pkg = readJson("package.json");
+      const nextVersion = bumpVersion(pkg.version, bumpType);
 
-    updatePackageVersion(nextVersion);
+      updatePackageVersion(nextVersion);
+      tag = `v${nextVersion}`;
 
-    console.log(`\nBumped version to ${nextVersion}\n`);
+      console.log(`\nBumped version to ${nextVersion}\n`);
+    } else {
+      const pkg = readJson("package.json");
+      tag = `v${pkg.version}`;
+
+      console.log(`\nUsing existing version tag: ${tag}\n`);
+    }
   }
-
-  const shouldPublish = await askYesNo("Do you want to publish to npm?", false);
 
   run("git", ["add", "."]);
   run("git", ["commit", "-m", `"${message}"`]);
 
-  if (tag) {
+  if (shouldPublish && tag) {
     run("git", ["tag", tag]);
-  }
-
-  run("git", ["push", "--follow-tags"]);
-
-  if (shouldPublish) {
-    run("npm", ["publish", "--access", "public"]);
+    run("git", ["push", "--follow-tags"]);
+  } else {
+    run("git", ["push"]);
   }
 
   console.log("\nDone.\n");
