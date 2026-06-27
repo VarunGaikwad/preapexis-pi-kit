@@ -1,4 +1,4 @@
-// cSpell:words Varun Gaikwad preapexis npm PowerShell
+// cSpell:words preapexis npm PowerShell
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 
 type EventContext = Parameters<Parameters<ExtensionAPI["on"]>[1]>[1];
@@ -32,11 +32,6 @@ export default function (pi: ExtensionAPI): void {
       shell: "pi update --extensions"
     },
     {
-      id: "kit-local",
-      label: "Re-link this local PreApeXis kit",
-      shell: "pi install -l ."
-    },
-    {
       id: "kit-npm",
       label: "Update PreApeXis Pi Kit from npm",
       shell: "pi install npm:@preapexis/pi-kit"
@@ -63,18 +58,19 @@ export default function (pi: ExtensionAPI): void {
   }
 
   function startUpdateStatus(ctx: EventContext, label: string): () => void {
+    const frames = ["◐", "◓", "◑", "◒"];
     let seconds = 0;
-    let dots = 0;
+    let frame = 0;
 
-    ctx.ui.setStatus(UPDATE_STATUS_KEY, `update: ${label}...`);
+    ctx.ui.setStatus(UPDATE_STATUS_KEY, `updating: ${label} ${frames[0]} 0s`);
 
     const timer = setInterval(() => {
       seconds += 1;
-      dots = (dots + 1) % 4;
+      frame = (frame + 1) % frames.length;
 
       ctx.ui.setStatus(
         UPDATE_STATUS_KEY,
-        `update: ${label}${".".repeat(dots)} ${seconds}s`
+        `updating: ${label} ${frames[frame]} ${seconds}s`
       );
     }, 1000);
 
@@ -176,15 +172,13 @@ export default function (pi: ExtensionAPI): void {
     const shell = shellCommand(option.shell);
     const stopStatus = startUpdateStatus(ctx, option.label);
 
-    let result: Awaited<ReturnType<typeof pi.exec>>;
+    let result: Awaited<ReturnType<typeof pi.exec>> | undefined;
 
     try {
       result = await pi.exec(shell.command, shell.args, {
         cwd: ctx.cwd
       });
     } catch (error) {
-      stopStatus();
-
       ctx.ui.notify(
         [
           `Update failed: ${option.label}`,
@@ -197,9 +191,14 @@ export default function (pi: ExtensionAPI): void {
       );
 
       return false;
+    } finally {
+      stopStatus();
     }
 
-    stopStatus();
+    if (!result) {
+      ctx.ui.notify(`Update failed: ${option.label}`, "error");
+      return false;
+    }
 
     const stdout = result.stdout?.trim() ?? "";
     const stderr = result.stderr?.trim() ?? "";
