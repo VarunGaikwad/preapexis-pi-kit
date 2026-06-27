@@ -1,5 +1,9 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { stdin as input, stdout as output } from "node:process";
+import readline from "node:readline/promises";
+
+const rl = readline.createInterface({ input, output });
 
 const message =
   process.env.npm_config_msg ||
@@ -20,6 +24,31 @@ function run(command, args) {
   }
 }
 
+async function askYesNo(question, defaultValue = false) {
+  const suffix = defaultValue ? "Y/n" : "y/N";
+  const answer = (await rl.question(`${question} (${suffix}): `))
+    .trim()
+    .toLowerCase();
+
+  if (!answer) return defaultValue;
+
+  return answer === "y" || answer === "yes";
+}
+
+async function askVersionType() {
+  while (true) {
+    const answer = (await rl.question("Version bump type? patch/minor/major: "))
+      .trim()
+      .toLowerCase();
+
+    if (["patch", "minor", "major"].includes(answer)) {
+      return answer;
+    }
+
+    console.log("Please type patch, minor, or major.");
+  }
+}
+
 function readJson(path) {
   return JSON.parse(readFileSync(path, "utf-8"));
 }
@@ -28,42 +57,88 @@ function writeJson(path, data) {
   writeFileSync(path, `${JSON.stringify(data, null, 2)}\n`);
 }
 
-function bumpPatch(version) {
+function bumpVersion(version, type) {
   const parts = version.split(".").map(Number);
 
   if (parts.length !== 3 || parts.some(Number.isNaN)) {
     throw new Error(`Invalid version: ${version}`);
   }
 
-  parts[2] += 1;
+  if (type === "major") {
+    parts[0] += 1;
+    parts[1] = 0;
+    parts[2] = 0;
+  }
+
+  if (type === "minor") {
+    parts[1] += 1;
+    parts[2] = 0;
+  }
+
+  if (type === "patch") {
+    parts[2] += 1;
+  }
+
   return parts.join(".");
 }
 
-const pkg = readJson("package.json");
-const nextVersion = bumpPatch(pkg.version);
+function updatePackageVersion(nextVersion) {
+  const pkg = readJson("package.json");
 
-pkg.version = nextVersion;
-writeJson("package.json", pkg);
+  pkg.version = nextVersion;
+  writeJson("package.json", pkg);
 
-if (existsSync("package-lock.json")) {
-  const lock = readJson("package-lock.json");
+  if (existsSync("package-lock.json")) {
+    const lock = readJson("package-lock.json");
 
-  if (lock.version) {
-    lock.version = nextVersion;
+    if (lock.version) {
+      lock.version = nextVersion;
+    }
+
+    if (lock.packages?.[""]) {
+      lock.packages[""].version = nextVersion;
+    }
+
+    writeJson("package-lock.json", lock);
   }
-
-  if (lock.packages?.[""]) {
-    lock.packages[""].version = nextVersion;
-  }
-
-  writeJson("package-lock.json", lock);
 }
 
-const tag = `v${nextVersion}`;
+try {
+  const shouldBump = await askYesNo(
+    "Do you want to bump package version?",
+    true
+  );
+  let nextVersion = null;
+  let tag = null;
 
-console.log(`\nBumped version to ${nextVersion}\n`);
+  if (shouldBump) {
+    const bumpType = await askVersionType();
+    const pkg = readJson("package.json");
 
-run("git", ["add", "."]);
-run("git", ["commit", "-m", `"${message}"`]);
-run("git", ["tag", [tag]]);
-run("git", ["push", "--follow-tags"]);
+    nextVersion = bumpVersion(pkg.version, bumpType);
+    tag = `v${nextVersion}`;
+
+    updatePackageVersion(nextVersion);
+
+    console.log(`\nBumped version to ${nextVersion}\n`);
+  }
+
+  const shouldPublish = await askYesNo("Do you want to publish to npm?", false);
+
+  run("git", ["add", "."]);
+  run("git", ["commit", "-m", `"${message}"`]);
+
+  if (tag) {
+    run("git", ["tag", tag]);
+  }
+
+  run("git", ["push", "--follow-tags"]);
+
+  if (shouldPublish) {
+    run("npm", ["publish", "--access", "public"]);
+  }
+
+  console.log("\nDone.\n");
+} finally {
+  rl.close();
+}
