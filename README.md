@@ -1,11 +1,10 @@
-`````md
 # preapexis-pi-kit
 
 A personalized kit for the [Pi Agent Harness](https://github.com/earendil-works/pi) that bundles extensions, prompts, skills, and themes to improve AI-assisted coding workflows.
 
 npm package: [@preapexis/pi-kit](https://www.npmjs.com/package/@preapexis/pi-kit)
 
-## What’s inside
+## What's inside
 
 - **extensions/** – TypeScript extensions that add custom behavior to Pi:
   - `safety.ts` – blocks risky shell commands, protects secrets, blocks unsafe paths, and injects safety rules.
@@ -36,7 +35,6 @@ npm package: [@preapexis/pi-kit](https://www.npmjs.com/package/@preapexis/pi-kit
 
 - **package.json** – declares this repository as a Pi package.
 
-````md
 ## Installation
 
 Install from npm:
@@ -44,12 +42,10 @@ Install from npm:
 ```bash
 pi install npm:@preapexis/pi-kit
 ```
-````
-`````
 
 After installing, restart Pi or reload extensions:
 
-```txt
+```
 /reload
 ```
 
@@ -58,23 +54,19 @@ After installing, restart Pi or reload extensions:
 Update from npm:
 
 ```bash
-pi install npm:@preapexis/pi-kit
+pi install npm:@preapexis/pi-kit@latest
 ```
 
 Then reload Pi:
 
-```txt
+```
 /reload
 ```
 
 You can also use:
 
-```txt
+```
 /update
-```
-
-```
-
 ```
 
 ## Usage
@@ -83,17 +75,17 @@ You can also use:
 
 Recommended flow:
 
-```txt
+```
 /init
 /plan <your request>
-/save-plan <paste generated plan>
+/save-plan
 /implement <saved plan path or pasted plan>
 /commit
 ```
 
 Use review prompts when needed:
 
-```txt
+```
 /review-safe
 /security
 ```
@@ -102,7 +94,7 @@ Use review prompts when needed:
 
 Run:
 
-```txt
+```
 /prompts
 ```
 
@@ -112,7 +104,7 @@ This shows all available prompt workflows and how to use them.
 
 Run:
 
-```txt
+```
 /update
 ```
 
@@ -120,7 +112,7 @@ This opens an update menu for updating Pi, this kit, or project packages.
 
 ### Sound commands
 
-```txt
+```
 /sound-on
 /sound-off
 /sound-test
@@ -150,7 +142,7 @@ The plan includes:
 
 Example summary:
 
-```txt
+```
 Use Haiku with low effort for batches 1 and 2.
 Use Sonnet with medium effort for batches 3 and 4.
 Use Opus with high effort for batch 5.
@@ -160,7 +152,7 @@ Use Opus with high effort for batch 5.
 
 Saves a generated plan to:
 
-```txt
+```
 docs/plans/YYYY-MM-DD-plan-name.md
 ```
 
@@ -224,13 +216,13 @@ Handles:
 
 Shows compact kit status in the footer:
 
-```txt
+```
 kit: safe · trusted · tests:none
 ```
 
 Commands:
 
-```txt
+```
 /test-pass
 /test-fail
 /test-none
@@ -242,7 +234,7 @@ Tracks session token usage and estimated cost.
 
 Commands:
 
-```txt
+```
 /usage
 /usage-reset
 ```
@@ -251,7 +243,7 @@ Commands:
 
 Adds:
 
-```txt
+```
 /update
 ```
 
@@ -263,7 +255,7 @@ Adds optional terminal sound cues.
 
 Commands:
 
-```txt
+```
 /sound-on
 /sound-off
 /sound-test
@@ -273,7 +265,7 @@ Commands:
 
 Adds:
 
-```txt
+```
 /prompts
 ```
 
@@ -287,7 +279,7 @@ Adds custom PreApeXis terminal branding and visual UI customization.
 
 Each skill should live in its own folder:
 
-```txt
+```
 skills/
   safe-coding/
     SKILL.md
@@ -309,13 +301,13 @@ pi install -l .
 
 Then reload Pi:
 
-```txt
+```
 /reload
 ```
 
 To add a new extension:
 
-```txt
+```
 extensions/my-extension.ts
 ```
 
@@ -323,7 +315,7 @@ It should export a default function that receives `ExtensionAPI`.
 
 To add a new prompt:
 
-```txt
+```
 prompts/my-prompt.md
 ```
 
@@ -331,19 +323,19 @@ The filename becomes the slash command.
 
 Example:
 
-```txt
+```
 prompts/security.md → /security
 ```
 
 To add a new skill:
 
-```txt
+```
 skills/my-skill/SKILL.md
 ```
 
 ## Package structure
 
-```txt
+```
 preapexis-pi-kit/
   package.json
   LICENSE
@@ -371,7 +363,3 @@ ISC. See the `LICENSE` file for details.
 ---
 
 Built for a safer, cleaner Pi coding-agent workflow.
-
-```
-
-```
