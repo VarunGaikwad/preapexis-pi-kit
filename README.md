@@ -1,16 +1,21 @@
+````md
 # preapexis-pi-kit
 
 A personalized kit for the [Pi Agent Harness](https://github.com/earendil-works/pi) that bundles extensions, prompts, skills, and themes to improve AI-assisted coding workflows.
+
+npm package: [@preapexis/pi-kit](https://www.npmjs.com/package/@preapexis/pi-kit)
 
 ## What’s inside
 
 - **extensions/** – TypeScript extensions that add custom behavior to Pi:
   - `safety.ts` – blocks risky shell commands, protects secrets, blocks unsafe paths, and injects safety rules.
-  - `git-guard.ts` – warns on dirty Git worktrees, blocks force-push, confirms `git reset --hard`, creates checkpoint branches before edits, and shows the current branch.
-  - `status.ts` – shows useful footer info such as model, mode, repo trust state, and test status.
+  - `git-guard.ts` – warns on dirty Git worktrees, blocks force-push, confirms `git reset --hard`, and creates checkpoint branches before risky edits.
+  - `status.ts` – shows compact kit status such as safety mode, repo trust, and test status.
   - `usage-tracker.ts` – tracks session token usage and estimated cost, with `/usage` and `/usage-reset`.
+  - `update.ts` – adds `/update` for updating Pi, this kit, or project packages.
+  - `sound-cues.ts` – adds optional sound cues for start, done, need-input, and error events.
   - `prompts.ts` – adds `/prompts`, a small menu listing available prompt workflows.
-  - `brand-ui.ts` – adds custom Pi branding/UI.
+  - `brand-ui.ts` – adds custom PreApeXis branding/UI.
 
 - **prompts/** – prompt templates for common workflows:
   - `init.md` – inspect a repository and create an onboarding report.
@@ -33,50 +38,14 @@ A personalized kit for the [Pi Agent Harness](https://github.com/earendil-works/
 
 ## Installation
 
-### Install from npm
-
-If the package is published to npm, install it with:
+Install from npm:
 
 ```bash
-pi install npm:preapexis-pi-kit
+pi install npm:@preapexis/pi-kit
 ```
+````
 
 After installing, restart Pi or reload extensions:
-
-```txt
-/reload
-```
-
-### Install from GitHub
-
-Install directly from GitHub:
-
-```bash
-pi install git:github.com/VarunGaikwad/preapexis-pi-kit@master
-```
-
-After installing, restart Pi or reload extensions:
-
-```txt
-/reload
-```
-
-### Install from a local clone
-
-Clone this repository:
-
-```bash
-git clone https://github.com/VarunGaikwad/preapexis-pi-kit.git
-cd preapexis-pi-kit
-```
-
-Install or link it with Pi:
-
-```bash
-pi install -l .
-```
-
-Then restart Pi or reload extensions:
 
 ```txt
 /reload
@@ -84,12 +53,10 @@ Then restart Pi or reload extensions:
 
 ## Updating
 
-### Update from npm
-
-If installed from npm, run:
+Update from npm:
 
 ```bash
-pi install npm:preapexis-pi-kit
+pi install npm:@preapexis/pi-kit
 ```
 
 Then reload Pi:
@@ -98,45 +65,13 @@ Then reload Pi:
 /reload
 ```
 
-### Update from GitHub
-
-If installed from GitHub, run:
-
-```bash
-pi install git:github.com/VarunGaikwad/preapexis-pi-kit@master
-```
-
-Then reload Pi:
+You can also use the built-in update command:
 
 ```txt
-/reload
+/update
 ```
 
-### Update a local linked copy
-
-If installed with local link mode, pull the latest changes in the local repo:
-
-```bash
-git pull
-```
-
-Then reload Pi:
-
-```txt
-/reload
-```
-
-To update from GitHub, run:
-
-```bash
-pi install git:github.com/VarunGaikwad/preapexis-pi-kit@master
-```
-
-Then reload Pi:
-
-```txt
-/reload
-```
+Then select the update option you want from the menu.
 
 ## Usage
 
@@ -168,6 +103,24 @@ Run:
 ```
 
 This shows all available prompt workflows and how to use them.
+
+### `/update`
+
+Run:
+
+```txt
+/update
+```
+
+This opens an update menu for updating Pi, this kit, or project packages.
+
+### Sound commands
+
+```txt
+/sound-on
+/sound-off
+/sound-test
+```
 
 ## Prompt details
 
@@ -259,25 +212,16 @@ Git-specific safety layer.
 Handles:
 
 - dirty working tree warning
-- branch display with `*` when dirty
 - force-push blocking
 - `git reset --hard` confirmation
 - checkpoint branch creation before risky edits
 
-Example status:
-
-```txt
-⎇ master*
-```
-
-The `*` means there are uncommitted changes.
-
 ### status.ts
 
-Shows project status in the footer:
+Shows compact kit status in the footer:
 
 ```txt
-mode: safe model: openrouter/... repo: trusted tests: none
+kit: safe · trusted · tests:none
 ```
 
 Commands:
@@ -286,6 +230,39 @@ Commands:
 /test-pass
 /test-fail
 /test-none
+```
+
+### usage-tracker.ts
+
+Tracks session token usage and estimated cost.
+
+Commands:
+
+```txt
+/usage
+/usage-reset
+```
+
+### update.ts
+
+Adds:
+
+```txt
+/update
+```
+
+This command opens a menu for updating Pi, this kit, or project packages.
+
+### sound-cues.ts
+
+Adds optional terminal sound cues.
+
+Commands:
+
+```txt
+/sound-on
+/sound-off
+/sound-test
 ```
 
 ### prompts.ts
@@ -300,7 +277,7 @@ This command lists available prompt workflows.
 
 ### brand-ui.ts
 
-Adds custom Pi branding and visual UI customization.
+Adds custom PreApeXis terminal branding and visual UI customization.
 
 ## Skills
 
@@ -319,6 +296,18 @@ skills/
 ```
 
 ## Development
+
+To test this package locally while developing:
+
+```bash
+pi install -l .
+```
+
+Then reload Pi:
+
+```txt
+/reload
+```
 
 To add a new extension:
 
@@ -355,7 +344,17 @@ preapexis-pi-kit/
   package.json
   LICENSE
   README.md
+  AGENTS.md
+  CHANGELOG.md
   extensions/
+    safety.ts
+    git-guard.ts
+    status.ts
+    usage-tracker.ts
+    update.ts
+    sound-cues.ts
+    prompts.ts
+    brand-ui.ts
   prompts/
   skills/
   themes/
@@ -368,3 +367,7 @@ ISC. See the `LICENSE` file for details.
 ---
 
 Built for a safer, cleaner Pi coding-agent workflow.
+
+```
+
+```
