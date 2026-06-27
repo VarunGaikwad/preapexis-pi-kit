@@ -1,194 +1,228 @@
-# Initialize Repository Understanding
+# Initialize Agent Guidelines
 
-Your job is to deeply inspect this repository and create or update an `AGENTS.md` file that captures everything Pi needs to know to work effectively in this codebase.
+Your job is to create or update the root `AGENTS.md` file for this repository.
 
-If the repository is large, inspect the most important files first and clearly mention what was not inspected.
+This prompt must **not** duplicate the full repository map. The detailed repository map belongs in:
+
+`docs/PROJECT_MAP.md`
+
+If `docs/PROJECT_MAP.md` exists, read it and use it as the main source for repository structure.
+
+If `docs/PROJECT_MAP.md` does not exist, do **not** create a large project map inside `AGENTS.md`. Instead, inspect only the most important project files and add a note in `AGENTS.md` saying that `/repo-map` should be run to generate `docs/PROJECT_MAP.md`.
 
 ## Goal
 
-Create a useful `AGENTS.md` file so future Pi sessions can quickly understand:
+Create a concise, useful `AGENTS.md` file that tells future Pi agents:
 
 - what this project does
-- where important files live
+- which repository map file to read
 - which commands to run
 - which files are risky
-- which files to inspect for common tasks
-- what rules agents should follow
+- which files to inspect first for common tasks
+- what rules agents must follow
+
+`AGENTS.md` should be short, scannable, and task-focused.
+
+It should act as an **agent operating guide**, not a full file inventory.
+
+## Important Rule
+
+Do not copy the full contents of `docs/PROJECT_MAP.md` into `AGENTS.md`.
+
+Instead, summarize only the most important paths and link to it.
+
+Good:
+
+- For the full repository map, read `docs/PROJECT_MAP.md`.
+
+Bad:
+
+- Listing every source file, prompt file, skill file, theme file, test file, and config file again inside `AGENTS.md`.
 
 ## Steps
 
-1. **Check for an existing `AGENTS.md`**
+1. Check for an existing `AGENTS.md`
    - If it exists, read it first.
-   - Preserve anything that is still accurate and relevant.
-   - Do not remove existing project-specific rules unless they are clearly outdated.
-   - Merge new findings with the existing content.
+   - Preserve accurate project-specific rules.
+   - Remove duplicated or overly detailed file inventory if it is already covered by `docs/PROJECT_MAP.md`.
+   - Keep the file concise.
 
-2. **Read the codebase thoroughly**
+2. Check for `docs/PROJECT_MAP.md`
+   - If it exists, read it.
+   - Use it to understand the project structure.
+   - Reference it from `AGENTS.md`.
+   - Do not duplicate it.
 
-   Read important files such as:
+3. Read key project files
+
+   Read only the files needed to create good agent guidance:
    - `README.md`
    - `package.json`
-   - `pyproject.toml`
-   - `go.mod`
-   - `Cargo.toml`
-   - `pom.xml`
-   - `build.gradle`
-   - `CONTRIBUTING.md`
-   - `docs/`
-   - `.github/workflows/`
-   - `docker-compose.yml`
-   - `Dockerfile`
-   - config files such as:
+   - `AGENTS.md`, if present
+   - `docs/PROJECT_MAP.md`, if present
+   - `.github/workflows/`, if present
+   - important config files such as:
      - `tsconfig.json`
-     - `vite.config.*`
-     - `next.config.*`
-     - `webpack.config.*`
      - `eslint.config.*`
      - `prettier.config.*`
-   - main source directories such as:
-     - `src/`
-     - `app/`
-     - `lib/`
-     - `packages/`
+
+   - main package directories such as:
      - `extensions/`
      - `prompts/`
      - `skills/`
      - `themes/`
-   - test files and test configuration
-   - `.env.example` files only
+     - `tests/`
 
    Do not read actual `.env` files.
 
-3. **Identify the project structure**
-
-   Find:
-   - main entry points
-   - important directories and their purposes
-   - config files
-   - generated/build output directories
-   - files that should be treated carefully
-
-4. **Detect the development workflow**
+4. Detect the development workflow
 
    Find commands for:
    - install
-   - dev
-   - build
    - test
-   - lint
    - typecheck
-   - format
-   - reload or local development, if applicable
+   - release
+   - local Pi usage
+   - package publishing, if applicable
 
-5. **Identify safety risks**
+5. Identify safety risks
 
    Look for:
-   - secrets or env files
-   - deployment files
-   - database migrations
-   - production config
-   - generated files
+   - auth files
+   - env files
+   - GitHub Actions publishing workflows
+   - release scripts
+   - package version files
    - lockfiles
-   - destructive scripts
-   - commands that should require confirmation
+   - destructive commands
+   - workspace boundary rules
 
-6. **Infer coding conventions**
+6. Create or update `AGENTS.md`
 
-   Look for:
-   - language/framework
-   - naming style
-   - error handling style
-   - testing style
-   - API conventions
-   - dependency management
-   - state management and data flow, if applicable
+   Use this structure:
 
-7. **Create a task-focused project map inside `AGENTS.md`**
+   # Agent Guidelines: <project name>
 
-   Add a section that tells future agents where to look first for common tasks.
+   ## Project Summary
+
+   Briefly explain what this project does.
+
+   ## Start Here
+
+   Tell future agents which files to read first.
+
+   Include:
+   - `README.md`
+   - `docs/PROJECT_MAP.md`, if present
+   - `package.json`
+   - key task-specific files
+
+   If `docs/PROJECT_MAP.md` is missing, say:
+   - Run `/repo-map` to generate `docs/PROJECT_MAP.md`.
+
+   ## Repository Map
+
+   Keep this section short.
+
+   If `docs/PROJECT_MAP.md` exists, write:
+   - Full repository map: `docs/PROJECT_MAP.md`
+
+   Then include only a small high-level table, not a full inventory.
 
    Example:
-   - For branding/UI changes, read `extensions/brand-ui.ts`.
-   - For update behavior, read `extensions/update.ts`.
-   - For safety behavior, read `extensions/safety.ts` and `extensions/git-guard.ts`.
-   - For prompt workflows, read `prompts/`.
-   - For skills, read `skills/<skill-name>/SKILL.md`.
 
-## Output
+   | Path          | Purpose                |
+   | ------------- | ---------------------- |
+   | `extensions/` | Pi extension modules   |
+   | `prompts/`    | Slash prompt workflows |
+   | `skills/`     | Packaged Pi skills     |
+   | `themes/`     | Pi themes              |
+   | `tests/`      | Vitest tests           |
 
-Create or update `AGENTS.md` in the repository root with this structure:
+   ## Common Task Map
 
-```markdown
-# Agent Guidelines: <project name>
+   Keep this task-focused.
 
-## Project Summary
+   Example:
 
-Briefly explain what this project does.
+   | Task                    | Read These Files First                                                             |
+   | ----------------------- | ---------------------------------------------------------------------------------- |
+   | Change branding/UI      | `extensions/brand-ui.ts`, `themes/`                                                |
+   | Change update behavior  | `extensions/update.ts`                                                             |
+   | Change safety behavior  | `extensions/safety.ts`, `extensions/git-guard.ts`, `extensions/workspace-guard.ts` |
+   | Change prompt workflows | `prompts/`, `extensions/prompts.ts`                                                |
+   | Change LiteLLM provider | `extensions/litellm-provider.ts`                                                   |
+   | Change release behavior | `scripts/git-release.mjs`, `.github/workflows/`                                    |
 
-## Tech Stack
+   ## Development Commands
 
-Languages, frameworks, libraries, and tools.
+   Include only commands that are present in the project.
 
-## Project Map
+   Example:
 
-| Path   | Purpose          |
-| ------ | ---------------- |
-| `src/` | Main source code |
+   | Command                       | Purpose                                        |
+   | ----------------------------- | ---------------------------------------------- |
+   | `npm test`                    | Run tests                                      |
+   | `npm run git --msg="message"` | Commit, optionally bump version, tag, and push |
 
-## Common Task Map
+   ## Coding Conventions
 
-| Task                   | Read These Files First                            |
-| ---------------------- | ------------------------------------------------- |
-| Change branding/UI     | `extensions/brand-ui.ts`, `themes/`               |
-| Change update behavior | `extensions/update.ts`                            |
-| Change safety behavior | `extensions/safety.ts`, `extensions/git-guard.ts` |
+   Summarize important conventions only.
 
-## Development Commands
+   Include language, module style, formatting style, testing style, and extension patterns.
 
-| Command    | Purpose   |
-| ---------- | --------- |
-| `npm test` | Run tests |
+   ## Safety Rules
 
-## Coding Conventions
+   Include rules agents must follow.
 
-Naming, error handling, testing, API patterns, state management.
+   Mention:
+   - Do not read `.env` files.
+   - Do not expose secrets.
+   - Do not modify files outside the current workspace unless explicitly allowed.
+   - Be careful with release scripts, npm publishing, GitHub workflows, and package version files.
+   - Ask before destructive Git commands.
+   - Do not duplicate `docs/PROJECT_MAP.md` inside `AGENTS.md`.
 
-## Safety Rules
+   ## Architecture Notes
 
-Files, directories, and commands to treat carefully.
+   Summarize important architecture patterns.
 
-## Architecture Notes
+   Keep this short.
 
-Key patterns, data flow, important abstractions.
+   ## Agent Rules
 
-## Agent Rules
+   Include direct rules for future agents.
 
-Repo-specific rules for AI agents working in this codebase.
+   Example:
+   - Prefer editing existing extension files over creating duplicates.
+   - Keep `AGENTS.md` concise.
+   - Put detailed repository mapping in `docs/PROJECT_MAP.md`.
+   - Do not add GitHub install instructions if this package should be installed from npm.
+   - Do not duplicate Pi’s built-in status/footer information.
+   - Keep workspace guard behavior strict by default.
 
-## Open Questions
+   ## Open Questions
 
-Anything unclear or missing.
+   List anything unclear.
 
-## Inspection Notes
+   ## Inspection Notes
 
-Mention important areas that were not inspected.
-```
-````
+   Mention what was inspected and what was not inspected.
 
-## Rules
+## Output Rules
 
-- Be thorough but concise.
-- `AGENTS.md` should be scannable.
+- Only create or update `AGENTS.md`.
+- Do not modify source code.
+- Do not modify `docs/PROJECT_MAP.md`.
+- Do not create a second project map inside `AGENTS.md`.
+- Keep `AGENTS.md` concise.
+- Prefer references to `docs/PROJECT_MAP.md` over duplicated file lists.
 - Do not include secrets, API keys, tokens, passwords, or sensitive data.
 - Do not read actual `.env` files.
-- If `AGENTS.md` already exists, merge with it instead of blindly replacing it.
-- Focus on information that helps an AI agent write better code.
-- Prefer specific file paths over vague explanations.
-- Do not modify source code during initialization.
-- Only create or update `AGENTS.md`.
-- After creating or updating `AGENTS.md`, report:
-  - file path
-  - what sections were added or updated
-  - anything that was unclear
 
+After updating `AGENTS.md`, report:
 
+- file path
+- sections added or updated
+- whether `docs/PROJECT_MAP.md` was found and used
+- anything unclear

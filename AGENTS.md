@@ -1,20 +1,111 @@
-# AGENTS.md
+# Agent Guidelines: preapexis-pi-kit
 
-Guidance for AI agents working in this repository.
+## Project Summary
 
-## Project
+`preapexis-pi-kit` is a personal Pi coding-agent package that bundles TypeScript extensions, prompt templates, reusable skills, and UI themes for the [Pi Agent Harness](https://github.com/earendil-works/pi). It adds safety guards, status displays, prompt workflows, and custom branding to AI-assisted coding sessions.
 
-This repository is `preapexis-pi-kit`, a personal Pi coding-agent package.
+Published to npm as `@preapexis/pi-kit`.
 
-It contains:
+## Tech Stack
 
-- `extensions/` — TypeScript Pi extensions.
-- `prompts/` — prompt templates that become slash commands.
-- `skills/` — reusable skills, each in its own folder with a `SKILL.md`.
-- `themes/` — Pi UI themes.
-- `package.json` — declares this repository as a Pi package.
+- **Language:** TypeScript (ES2022, NodeNext module resolution)
+- **Runtime:** Node.js
+- **Test runner:** Vitest
+- **Package manager:** npm
+- **Peer dependency:** `@earendil-works/pi-coding-agent`
 
-## Core Rules
+## Project Map
+
+| Path               | Purpose                                                                                                   |
+| ------------------ | --------------------------------------------------------------------------------------------------------- |
+| `AGENTS.md`        | Core rules and guidance for agents working in this repository. Read this first before any edit.           |
+| `README.md`        | Public documentation, installation instructions, and usage guide.                                         |
+| `package.json`     | Pi package manifest. Declares `pi.extensions`, `pi.prompts`, `pi.skills`, and `pi.themes`.                |
+| `CHANGELOG.md`     | Version history and release notes.                                                                        |
+| `LICENSE`          | ISC license.                                                                                              |
+| `settings.json`    | Local Pi settings (`theme`, `defaultProjectTrust`). Not published as part of the package manifest.        |
+| `tsconfig.json`    | TypeScript configuration covering `extensions/**/*.ts`, `tests/**/*.ts`, and `vitest.config.ts`.          |
+| `vitest.config.ts` | Vitest test runner configuration (Node environment, globals enabled).                                     |
+| `extensions/`      | TypeScript Pi extensions. Each file exports a default function receiving `ExtensionAPI`.                  |
+| `prompts/`         | Markdown prompt templates. The filename (without `.md`) becomes a slash command.                          |
+| `skills/`          | Reusable skills. Each skill lives in its own subfolder containing a `SKILL.md` with frontmatter.          |
+| `themes/`          | JSON theme files for Pi UI. Each file must have `name`, `vars`, `colors`, and `$schema`.                  |
+| `tests/`           | Vitest test suite validating package structure, extension syntax, prompt conventions, skills, and themes. |
+| `scripts/`         | Development helper scripts. Currently contains `git-release.mjs`.                                         |
+| `docs/`            | Project documentation. `docs/plans/` is the target directory for `/save-plan`.                            |
+
+## Common Task Map
+
+| Task                        | Read These Files First                                                                        |
+| --------------------------- | --------------------------------------------------------------------------------------------- |
+| Change branding/UI          | `extensions/brand-ui.ts`, `themes/`                                                           |
+| Change update behavior      | `extensions/update.ts`                                                                        |
+| Change safety behavior      | `extensions/safety.ts`, `extensions/git-guard.ts`, `extensions/workspace-guard.ts`            |
+| Change footer/status        | `extensions/status.ts`, `extensions/usage-tracker.ts`                                         |
+| Change prompt workflows     | `extensions/prompts.ts`, `prompts/`                                                           |
+| Change sound cues           | `extensions/sound-cues.ts`                                                                    |
+| Change workspace boundaries | `extensions/workspace-guard.ts`                                                               |
+| Add a new extension         | `AGENTS.md` (Extension Rules), `tests/extensions.test.ts`, then create `extensions/<name>.ts` |
+| Add a new prompt            | `AGENTS.md` (Prompt Rules), `tests/prompts.test.ts`, then create `prompts/<name>.md`          |
+| Add a new skill             | `AGENTS.md` (Skill Rules), `tests/skills.test.ts`, then create `skills/<name>/SKILL.md`       |
+| Add a new theme             | `tests/themes.test.ts`, then create `themes/<name>.json`                                      |
+| Release a new version       | `scripts/git-release.mjs`, `package.json`, `CHANGELOG.md`, `.github/workflows/publish.yml`    |
+
+## Development Commands
+
+| Command              | Purpose                                                                        |
+| -------------------- | ------------------------------------------------------------------------------ |
+| `npm test`           | Run the full Vitest test suite (structure, syntax, and validation tests).      |
+| `npm run test:watch` | Run Vitest in watch mode.                                                      |
+| `npm run git`        | Run the interactive git-release script (bumps version, commits, tags, pushes). |
+| `pi install -l .`    | Install this package locally into Pi for development testing.                  |
+| `/reload`            | Reload Pi after installing, updating, or changing extensions.                  |
+
+## Coding Conventions
+
+- **Language:** TypeScript with strict mode enabled.
+- **Module system:** ES modules (`"type": "module"`), NodeNext resolution.
+- **Extension pattern:** Each extension exports a default function receiving `ExtensionAPI`.
+- **Naming:** Use clear, explicit names. Prefer `kebab-case` for filenames.
+- **Error handling:** Extensions use `ctx.hasUI` checks before UI operations; fall back to `console.log` or blocking when UI is unavailable.
+- **Testing:** Tests are in `tests/` using Vitest. Tests validate structural constraints (default exports, frontmatter, valid JSON) rather than deep behavioral logic.
+- **Dependencies:** Do not add dependencies unless explicitly approved. The package has no runtime dependencies; only `typescript` and `vitest` as devDependencies.
+- **Comments:** Avoid comments that only repeat the code. Use JSDoc for extension-level documentation.
+
+## Safety Rules
+
+Agents must avoid:
+
+- reading or editing `.env` files
+- editing `.git`
+- editing `node_modules`
+- editing build output such as `dist`, `build`, `out`, or `coverage`
+- changing lockfiles unless the user approves
+- running package install/remove commands unless the user approves
+- running destructive Git commands (`git push --force`, `git reset --hard`, `git clean -fd`)
+- running destructive shell commands
+- running commands that leave the workspace without approval
+
+Before risky edits, check whether the repo is dirty. Avoid overwriting user work.
+
+The `scripts/git-release.mjs` script performs `git push` and may create tags; review its behavior before running in a dirty worktree.
+
+## Architecture Notes
+
+- **Extension API:** All extensions consume `@earendil-works/pi-coding-agent`'s `ExtensionAPI`. They hook into lifecycle events (`session_start`, `before_agent_start`, `tool_call`, `agent_end`) and register slash commands.
+- **System prompt injection:** `safety.ts`, `workspace-guard.ts`, and potentially other extensions append rules to the agent system prompt via `before_agent_start`.
+- **UI availability:** Extensions must check `ctx.hasUI` before calling `ctx.ui.notify`, `ctx.ui.confirm`, `ctx.ui.select`, or `ctx.ui.setStatus`.
+- **Workspace boundary:** `workspace-guard.ts` locks the workspace root at `session_start` and blocks tool calls targeting outside paths.
+- **Git checkpointing:** `git-guard.ts` creates `pi-checkpoint-<branch>-<timestamp>` branches before risky edits when the working tree is dirty.
+- **Separation of concerns:**
+  - Git branch display belongs in `git-guard.ts`.
+  - Model, mode, repo trust, and test status belong in `status.ts`.
+  - Risky non-Git shell command protection belongs in `safety.ts`.
+  - Prompt menu belongs in `prompts.ts`.
+
+## Agent Rules
+
+### Core Rules
 
 - Keep changes small, focused, and reviewable.
 - Read existing files before editing them.
@@ -25,7 +116,7 @@ It contains:
 - Do not rewrite Git history.
 - Do not edit secrets, `.env` files, `.git`, build output, or generated files.
 
-## Package Structure Rules
+### Package Structure Rules
 
 The Pi package should continue to use this structure:
 
@@ -57,9 +148,7 @@ skills/
 
 Do not place skill files directly inside `skills/` unless Pi explicitly supports that format.
 
-## Extension Rules
-
-Extensions are TypeScript files in `extensions/`.
+### Extension Rules
 
 Current expected extensions:
 
@@ -69,20 +158,13 @@ Current expected extensions:
 - `prompts.ts` — `/prompts` menu.
 - `brand-ui.ts` — custom UI branding.
 
-Avoid duplicate responsibilities:
-
-- Git branch display belongs in `git-guard.ts`.
-- Model, mode, repo trust, and test status belong in `status.ts`.
-- Risky non-Git shell command protection belongs in `safety.ts`.
-- Prompt menu belongs in `prompts.ts`.
+Avoid duplicate responsibilities (see Architecture Notes).
 
 Do not reintroduce duplicate `/plan`, `/commit`, `/security`, or similar commands in extensions if matching prompt files already exist.
 
-## Prompt Rules
+### Prompt Rules
 
-Prompt files live in `prompts/`.
-
-The filename becomes the slash command.
+Prompt files live in `prompts/`. The filename becomes the slash command.
 
 Examples:
 
@@ -112,7 +194,7 @@ Prompt behavior rules:
 - Save-plan prompt should save plans under `docs/plans/`.
 - Do not edit `AGENTS.md` from a prompt unless the user approves.
 
-## Skill Rules
+### Skill Rules
 
 Skill files must start with valid frontmatter:
 
@@ -127,31 +209,7 @@ Do not add an extra `---` after the frontmatter.
 
 Keep skills focused and reusable.
 
-Good skill categories for this repo:
-
-- safe coding
-- frontend onboarding
-- frontend quality review
-- component implementation
-
-## Safety Rules
-
-Agents must avoid:
-
-- reading or editing `.env` files
-- editing `.git`
-- editing `node_modules`
-- editing build output such as `dist`, `build`, `out`, or `coverage`
-- changing lockfiles unless the user approves
-- running package install/remove commands unless the user approves
-- running destructive Git commands
-- running destructive shell commands
-
-If a task is unclear, ask questions before editing.
-
-Ask only important questions. If the task is clear, continue.
-
-## Verification
+### Verification
 
 When code changes are made, run the narrowest relevant check if available:
 
@@ -164,25 +222,7 @@ If checks cannot be run, explain why.
 
 Do not claim tests passed unless they were actually run.
 
-## Git Rules
-
-Before risky edits, check whether the repo is dirty.
-
-Dirty means there are uncommitted changes.
-
-Avoid overwriting user work.
-
-Do not run:
-
-```bash
-git push --force
-git reset --hard
-git clean -fd
-```
-
-unless the user explicitly approves and the safety extension allows it.
-
-## README Rules
+### README Rules
 
 Keep `README.md` aligned with the actual files.
 
@@ -190,10 +230,38 @@ If an extension, prompt, skill, or theme is renamed, update the README.
 
 Avoid mentioning removed files such as `team.ts` or old names such as `workflow.ts` if they no longer exist.
 
-## Style
+### Style
 
 - Use clear, simple language.
 - Prefer plain Markdown.
 - Avoid unnecessary complexity.
 - Avoid adding comments that only repeat the code.
 - Prefer explicit names over clever names.
+
+### Clarification
+
+If a task is unclear, ask questions before editing.
+
+Ask only important questions. If the task is clear, continue.
+
+Do not edit files until the user answers clarification questions.
+
+## Open Questions
+
+None.
+
+## Inspection Notes
+
+All important files were inspected:
+
+- Root files: `package.json`, `README.md`, `CHANGELOG.md`, `LICENSE`, `settings.json`, `tsconfig.json`, `vitest.config.ts`, `.gitignore`
+- Extensions: all 9 files in `extensions/`
+- Prompts: all 8 files in `prompts/`
+- Skills: all 4 `SKILL.md` files
+- Themes: all 4 JSON files
+- Tests: all 6 test files plus `tests/helpers.ts`
+- Scripts: `scripts/git-release.mjs`
+- CI/CD: `.github/workflows/publish.yml`
+- Editor configs: `.vscode/settings.json`, `.pi/settings.json`
+
+Not inspected in detail: individual theme JSON internals (only structure was validated via tests), and the full `node_modules/` tree (not relevant).
