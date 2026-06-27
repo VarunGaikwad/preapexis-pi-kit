@@ -1,43 +1,88 @@
 # Initialize Repository Understanding
 
-Initialize your understanding of this repository.
-
-Do not edit files.
-
-Your job is to inspect the project and produce a clear onboarding report for future work.
+Your job is to deeply inspect this repository and create or update an `AGENTS.md` file that captures everything Pi needs to know to work effectively in this codebase.
 
 If the repository is large, inspect the most important files first and clearly mention what was not inspected.
 
+## Goal
+
+Create a useful `AGENTS.md` file so future Pi sessions can quickly understand:
+
+- what this project does
+- where important files live
+- which commands to run
+- which files are risky
+- which files to inspect for common tasks
+- what rules agents should follow
+
 ## Steps
 
-1. Read the most important project files first:
-   - README.md
-   - AGENTS.md
-   - package.json / pyproject.toml / go.mod / Cargo.toml / pom.xml / build.gradle
-   - CONTRIBUTING.md
-   - docs/
-   - .github/workflows/
-   - docker-compose.yml / Dockerfile
-   - existing test configuration
+1. **Check for an existing `AGENTS.md`**
+   - If it exists, read it first.
+   - Preserve anything that is still accurate and relevant.
+   - Do not remove existing project-specific rules unless they are clearly outdated.
+   - Merge new findings with the existing content.
 
-2. Identify the project structure:
-   - main application entry points
-   - important directories
-   - test locations
+2. **Read the codebase thoroughly**
+
+   Read important files such as:
+   - `README.md`
+   - `package.json`
+   - `pyproject.toml`
+   - `go.mod`
+   - `Cargo.toml`
+   - `pom.xml`
+   - `build.gradle`
+   - `CONTRIBUTING.md`
+   - `docs/`
+   - `.github/workflows/`
+   - `docker-compose.yml`
+   - `Dockerfile`
+   - config files such as:
+     - `tsconfig.json`
+     - `vite.config.*`
+     - `next.config.*`
+     - `webpack.config.*`
+     - `eslint.config.*`
+     - `prettier.config.*`
+   - main source directories such as:
+     - `src/`
+     - `app/`
+     - `lib/`
+     - `packages/`
+     - `extensions/`
+     - `prompts/`
+     - `skills/`
+     - `themes/`
+   - test files and test configuration
+   - `.env.example` files only
+
+   Do not read actual `.env` files.
+
+3. **Identify the project structure**
+
+   Find:
+   - main entry points
+   - important directories and their purposes
    - config files
    - generated/build output directories
    - files that should be treated carefully
 
-3. Detect the development workflow:
-   - install command
-   - dev command
-   - build command
-   - test command
-   - lint command
-   - typecheck command
-   - formatting command
+4. **Detect the development workflow**
 
-4. Identify safety risks:
+   Find commands for:
+   - install
+   - dev
+   - build
+   - test
+   - lint
+   - typecheck
+   - format
+   - reload or local development, if applicable
+
+5. **Identify safety risks**
+
+   Look for:
    - secrets or env files
    - deployment files
    - database migrations
@@ -47,52 +92,103 @@ If the repository is large, inspect the most important files first and clearly m
    - destructive scripts
    - commands that should require confirmation
 
-5. Infer coding conventions:
+6. **Infer coding conventions**
+
+   Look for:
    - language/framework
    - naming style
    - error handling style
    - testing style
    - API conventions
    - dependency management
+   - state management and data flow, if applicable
+
+7. **Create a task-focused project map inside `AGENTS.md`**
+
+   Add a section that tells future agents where to look first for common tasks.
+
+   Example:
+   - For branding/UI changes, read `extensions/brand-ui.ts`.
+   - For update behavior, read `extensions/update.ts`.
+   - For safety behavior, read `extensions/safety.ts` and `extensions/git-guard.ts`.
+   - For prompt workflows, read `prompts/`.
+   - For skills, read `skills/<skill-name>/SKILL.md`.
 
 ## Output
 
-Return a repository onboarding report with these sections:
+Create or update `AGENTS.md` in the repository root with this structure:
 
-# Repository Summary
+```markdown
+# Agent Guidelines: <project name>
 
-Briefly explain what this project appears to do.
+## Project Summary
 
-# Tech Stack
+Briefly explain what this project does.
 
-List the detected languages, frameworks, libraries, and tools.
+## Tech Stack
 
-# Project Map
+Languages, frameworks, libraries, and tools.
 
-Explain the important folders and files.
+## Project Map
 
-# Common Commands
+| Path   | Purpose          |
+| ------ | ---------------- |
+| `src/` | Main source code |
 
-List install, dev, build, test, lint, typecheck, and format commands if found.
+## Common Task Map
 
-# Safety Notes
+| Task                   | Read These Files First                            |
+| ---------------------- | ------------------------------------------------- |
+| Change branding/UI     | `extensions/brand-ui.ts`, `themes/`               |
+| Change update behavior | `extensions/update.ts`                            |
+| Change safety behavior | `extensions/safety.ts`, `extensions/git-guard.ts` |
 
-List files, directories, and commands that should be treated carefully.
+## Development Commands
 
-# Coding Conventions
+| Command    | Purpose   |
+| ---------- | --------- |
+| `npm test` | Run tests |
 
-Summarize the project’s apparent patterns.
+## Coding Conventions
 
-# Recommended Agent Rules
+Naming, error handling, testing, API patterns, state management.
 
-Suggest repo-specific rules that should be added to AGENTS.md or team instructions.
+## Safety Rules
 
-# Open Questions
+Files, directories, and commands to treat carefully.
 
-List anything unclear or missing.
+## Architecture Notes
 
-# Inspection Notes
+Key patterns, data flow, important abstractions.
 
-Mention important files or areas that were not inspected.
+## Agent Rules
 
-Do not modify the repository unless I explicitly ask.
+Repo-specific rules for AI agents working in this codebase.
+
+## Open Questions
+
+Anything unclear or missing.
+
+## Inspection Notes
+
+Mention important areas that were not inspected.
+```
+````
+
+## Rules
+
+- Be thorough but concise.
+- `AGENTS.md` should be scannable.
+- Do not include secrets, API keys, tokens, passwords, or sensitive data.
+- Do not read actual `.env` files.
+- If `AGENTS.md` already exists, merge with it instead of blindly replacing it.
+- Focus on information that helps an AI agent write better code.
+- Prefer specific file paths over vague explanations.
+- Do not modify source code during initialization.
+- Only create or update `AGENTS.md`.
+- After creating or updating `AGENTS.md`, report:
+  - file path
+  - what sections were added or updated
+  - anything that was unclear
+
+

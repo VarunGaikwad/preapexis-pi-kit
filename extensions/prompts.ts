@@ -4,7 +4,8 @@ export default function (pi: ExtensionAPI): void {
   const prompts = [
     {
       name: "init",
-      description: "Inspect the repository and create an onboarding report",
+      description:
+        "Inspect the repository and create or update AGENTS.md for future Pi sessions",
       usage: "/init"
     },
     {
