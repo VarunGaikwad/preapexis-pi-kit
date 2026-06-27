@@ -72,11 +72,10 @@ export default function (pi: ExtensionAPI): void {
 
     ctx.ui.setWorkingIndicator({
       frames: [
-        `${rainbowPi()} thinking`,
-        `${rainbowPi()} reading`,
-        `${rainbowPi()} planning`,
-        `${rainbowPi()} coding`,
-        `${rainbowPi()} checking`
+        rainbowPi(),
+        `${rainbowPi()}·`,
+        `${rainbowPi()}··`,
+        `${rainbowPi()}···`
       ],
       intervalMs: 300
     });
