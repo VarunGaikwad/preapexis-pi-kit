@@ -1,4 +1,4 @@
-````md
+`````md
 # preapexis-pi-kit
 
 A personalized kit for the [Pi Agent Harness](https://github.com/earendil-works/pi) that bundles extensions, prompts, skills, and themes to improve AI-assisted coding workflows.
@@ -36,6 +36,7 @@ npm package: [@preapexis/pi-kit](https://www.npmjs.com/package/@preapexis/pi-kit
 
 - **package.json** – declares this repository as a Pi package.
 
+````md
 ## Installation
 
 Install from npm:
@@ -44,6 +45,7 @@ Install from npm:
 pi install npm:@preapexis/pi-kit
 ```
 ````
+`````
 
 After installing, restart Pi or reload extensions:
 
@@ -65,13 +67,15 @@ Then reload Pi:
 /reload
 ```
 
-You can also use the built-in update command:
+You can also use:
 
 ```txt
 /update
 ```
 
-Then select the update option you want from the menu.
+```
+
+```
 
 ## Usage
 
