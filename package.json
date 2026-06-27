@@ -1,6 +1,6 @@
 {
   "name": "@preapexis/pi-kit",
-  "version": "1.0.3",
+  "version": "1.0.0",
   "description": "Personal Pi coding-agent kit with safety extensions, status UI, prompt workflows, skills, and themes.",
   "keywords": [
     "pi-package",
