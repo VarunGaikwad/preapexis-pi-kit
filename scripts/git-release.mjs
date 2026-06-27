@@ -135,7 +135,7 @@ try {
   run("git", ["commit", "-m", `"${message}"`]);
 
   if (shouldPublish && tag) {
-    run("git", ["tag", tag]);
+    run("git", ["tag", "-a", tag, "-m", tag]);
     run("git", ["push", "--follow-tags"]);
   } else {
     run("git", ["push"]);
