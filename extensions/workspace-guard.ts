@@ -134,23 +134,6 @@ export default function (pi: ExtensionAPI): void {
     }
   });
 
-  pi.on("before_agent_start", async (event) => {
-    return {
-      systemPrompt:
-        event.systemPrompt +
-        `
-
-Workspace boundary rules:
-- Treat the current working directory as the workspace root.
-- Do not read, search, edit, write, delete, or inspect files outside the current workspace unless the user explicitly asks.
-- Before using any path outside the workspace, ask the user for permission.
-- Prefer relative paths inside the current repository.
-- Do not run commands that cd, pushd, Set-Location, or otherwise move outside the workspace unless explicitly requested.
-- If outside-workspace context seems useful, ask first instead of checking it silently.
-`
-    };
-  });
-
   pi.on("tool_call", async (event, ctx) => {
     if (!workspaceRoot) {
       workspaceRoot = normalize(ctx.cwd);

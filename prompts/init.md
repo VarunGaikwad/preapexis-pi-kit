@@ -1,228 +1,253 @@
-# Initialize Agent Guidelines
+# Initialize Repository Understanding
 
-Your job is to create or update the root `AGENTS.md` file for this repository.
-
-This prompt must **not** duplicate the full repository map. The detailed repository map belongs in:
-
-`docs/PROJECT_MAP.md`
-
-If `docs/PROJECT_MAP.md` exists, read it and use it as the main source for repository structure.
-
-If `docs/PROJECT_MAP.md` does not exist, do **not** create a large project map inside `AGENTS.md`. Instead, inspect only the most important project files and add a note in `AGENTS.md` saying that `/repo-map` should be run to generate `docs/PROJECT_MAP.md`.
+> This prompt initializes or updates the repository-level `AGENTS.md` file for Pi.
+> It should rely on `docs/PROJECT_MAP.md` when available and avoid doing full repository mapping itself.
 
 ## Goal
 
-Create a concise, useful `AGENTS.md` file that tells future Pi agents:
+Create or update an `AGENTS.md` file that gives future Pi sessions clear, durable instructions for working in this repository.
+
+The `AGENTS.md` file should help future agents quickly understand:
 
 - what this project does
-- which repository map file to read
+- where important files live
 - which commands to run
 - which files are risky
-- which files to inspect first for common tasks
-- what rules agents must follow
+- which files to inspect for common tasks
+- what repository-specific rules agents should follow
 
-`AGENTS.md` should be short, scannable, and task-focused.
+## Core Rule
 
-It should act as an **agent operating guide**, not a full file inventory.
+`/init` must not duplicate the work of `/repo-map`.
 
-## Important Rule
+Use `docs/PROJECT_MAP.md` if it exists. If it does not exist, recommend running `/repo-map`.
 
-Do not copy the full contents of `docs/PROJECT_MAP.md` into `AGENTS.md`.
+When creating or updating `AGENTS.md`, ensure it contains this line exactly once:
 
-Instead, summarize only the most important paths and link to it.
+> Use `docs/PROJECT_MAP.md` if it exists. If it does not exist, recommend running `/repo-map`.
 
-Good:
+Do not add duplicate copies of this line if it already exists.
 
-- For the full repository map, read `docs/PROJECT_MAP.md`.
+## What `/init` Should Do
 
-Bad:
+1. Check whether `AGENTS.md` exists.
+2. Check whether `docs/PROJECT_MAP.md` exists.
+3. If `docs/PROJECT_MAP.md` exists:
+   - Read it.
+   - Use it as the primary source for repository structure and important files.
+   - Do not re-map the full repository.
 
-- Listing every source file, prompt file, skill file, theme file, test file, and config file again inside `AGENTS.md`.
-
-## Steps
-
-1. Check for an existing `AGENTS.md`
-   - If it exists, read it first.
-   - Preserve accurate project-specific rules.
-   - Remove duplicated or overly detailed file inventory if it is already covered by `docs/PROJECT_MAP.md`.
-   - Keep the file concise.
-
-2. Check for `docs/PROJECT_MAP.md`
-   - If it exists, read it.
-   - Use it to understand the project structure.
-   - Reference it from `AGENTS.md`.
-   - Do not duplicate it.
-
-3. Read key project files
-
-   Read only the files needed to create good agent guidance:
-   - `README.md`
-   - `package.json`
-   - `AGENTS.md`, if present
-   - `docs/PROJECT_MAP.md`, if present
-   - `.github/workflows/`, if present
-   - important config files such as:
+4. If `docs/PROJECT_MAP.md` does not exist:
+   - Do not perform full repository mapping.
+   - Recommend running `/repo-map`.
+   - Inspect only lightweight top-level files needed to create a useful minimal `AGENTS.md`, such as:
+     - `README.md`
+     - `package.json`
+     - `pnpm-workspace.yaml`
      - `tsconfig.json`
-     - `eslint.config.*`
-     - `prettier.config.*`
+     - `pyproject.toml`
+     - `Cargo.toml`
+     - `go.mod`
+     - `.github/workflows/*`
 
-   - main package directories such as:
-     - `extensions/`
-     - `prompts/`
-     - `skills/`
-     - `themes/`
-     - `tests/`
+   - Clearly mention in `AGENTS.md` that the repository map is missing.
 
-   Do not read actual `.env` files.
+5. Create or update `AGENTS.md`.
+6. Preserve any existing useful project-specific instructions.
+7. Remove or rewrite outdated, duplicated, or generic content only when clearly safe.
+8. Keep `AGENTS.md` concise and durable.
 
-4. Detect the development workflow
+## What `/init` Should Not Do
 
-   Find commands for:
-   - install
-   - test
-   - typecheck
-   - release
-   - local Pi usage
-   - package publishing, if applicable
+Do not:
 
-5. Identify safety risks
+- scan the entire repository when `docs/PROJECT_MAP.md` is missing
+- duplicate large sections from `docs/PROJECT_MAP.md`
+- turn `AGENTS.md` into a full repository map
+- include long file trees
+- include temporary investigation notes
+- include speculative rules
+- overwrite existing project-specific instructions without reason
+- remove safety, testing, build, or deployment rules unless clearly outdated
+- add the required `docs/PROJECT_MAP.md` line more than once
 
-   Look for:
-   - auth files
-   - env files
-   - GitHub Actions publishing workflows
-   - release scripts
-   - package version files
-   - lockfiles
-   - destructive commands
-   - workspace boundary rules
+## AGENTS.md Content Requirements
 
-6. Create or update `AGENTS.md`
+The final `AGENTS.md` should include these sections when relevant.
 
-   Use this structure:
+### Project Overview
 
-   # Agent Guidelines: <project name>
+Briefly describe what the project is and what it does.
 
-   ## Project Summary
+Keep this section short.
 
-   Briefly explain what this project does.
+### Repository Map
 
-   ## Start Here
+Reference the project map instead of duplicating it.
 
-   Tell future agents which files to read first.
+This section must include the following line exactly once:
 
-   Include:
-   - `README.md`
-   - `docs/PROJECT_MAP.md`, if present
-   - `package.json`
-   - key task-specific files
+> Use `docs/PROJECT_MAP.md` if it exists. If it does not exist, recommend running `/repo-map`.
 
-   If `docs/PROJECT_MAP.md` is missing, say:
-   - Run `/repo-map` to generate `docs/PROJECT_MAP.md`.
+If `docs/PROJECT_MAP.md` exists, summarize only the most important locations from it.
 
-   ## Repository Map
+If it does not exist, write that the repository map is missing and that `/repo-map` should be run.
 
-   Keep this section short.
+### Common Commands
 
-   If `docs/PROJECT_MAP.md` exists, write:
-   - Full repository map: `docs/PROJECT_MAP.md`
+Include important commands for:
 
-   Then include only a small high-level table, not a full inventory.
+- installing dependencies
+- running locally
+- building
+- testing
+- linting
+- formatting
+- type-checking
 
-   Example:
+Only include commands that are supported by files in the repository.
 
-   | Path          | Purpose                |
-   | ------------- | ---------------------- |
-   | `extensions/` | Pi extension modules   |
-   | `prompts/`    | Slash prompt workflows |
-   | `skills/`     | Packaged Pi skills     |
-   | `themes/`     | Pi themes              |
-   | `tests/`      | Vitest tests           |
+Do not invent commands.
 
-   ## Common Task Map
+### Important Files and Directories
 
-   Keep this task-focused.
+List only high-value files and directories that future agents should know about.
 
-   Example:
+Prefer concise bullets.
 
-   | Task                    | Read These Files First                                                             |
-   | ----------------------- | ---------------------------------------------------------------------------------- |
-   | Change branding/UI      | `extensions/brand-ui.ts`, `themes/`                                                |
-   | Change update behavior  | `extensions/update.ts`                                                             |
-   | Change safety behavior  | `extensions/safety.ts`, `extensions/git-guard.ts`, `extensions/workspace-guard.ts` |
-   | Change prompt workflows | `prompts/`, `extensions/prompts.ts`                                                |
-   | Change LiteLLM provider | `extensions/litellm-provider.ts`                                                   |
-   | Change release behavior | `scripts/git-release.mjs`, `.github/workflows/`                                    |
+Do not include a full tree.
 
-   ## Development Commands
+### Development Rules
 
-   Include only commands that are present in the project.
+Include repository-specific rules, such as:
 
-   Example:
+- preferred package manager
+- coding style
+- branch or commit expectations
+- test requirements
+- generated file rules
+- environment variable rules
+- API or security constraints
 
-   | Command                       | Purpose                                        |
-   | ----------------------------- | ---------------------------------------------- |
-   | `npm test`                    | Run tests                                      |
-   | `npm run git --msg="message"` | Commit, optionally bump version, tag, and push |
+Do not add generic rules unless they are clearly useful for this repository.
 
-   ## Coding Conventions
+### Risky Areas
 
-   Summarize important conventions only.
+Mention files or areas that require extra caution, such as:
 
-   Include language, module style, formatting style, testing style, and extension patterns.
+- authentication
+- billing
+- migrations
+- deployment
+- generated files
+- config files
+- shared types
+- public APIs
+- data deletion
+- security-sensitive code
 
-   ## Safety Rules
+### Before Making Changes
 
-   Include rules agents must follow.
+Include a short checklist future agents should follow before editing.
 
-   Mention:
-   - Do not read `.env` files.
-   - Do not expose secrets.
-   - Do not modify files outside the current workspace unless explicitly allowed.
-   - Be careful with release scripts, npm publishing, GitHub workflows, and package version files.
-   - Ask before destructive Git commands.
-   - Do not duplicate `docs/PROJECT_MAP.md` inside `AGENTS.md`.
+Example:
 
-   ## Architecture Notes
+- Read `AGENTS.md`.
+- Read `docs/PROJECT_MAP.md` if available.
+- Inspect the files directly related to the requested change.
+- Run the smallest relevant validation command.
+- Avoid broad rewrites unless explicitly requested.
 
-   Summarize important architecture patterns.
+### Notes for Future Agents
 
-   Keep this short.
+Include any durable notes that will help future Pi sessions.
 
-   ## Agent Rules
+Avoid temporary notes like “today I checked…” or “currently investigating…”.
 
-   Include direct rules for future agents.
+## Update Strategy
 
-   Example:
-   - Prefer editing existing extension files over creating duplicates.
-   - Keep `AGENTS.md` concise.
-   - Put detailed repository mapping in `docs/PROJECT_MAP.md`.
-   - Do not add GitHub install instructions if this package should be installed from npm.
-   - Do not duplicate Pi’s built-in status/footer information.
-   - Keep workspace guard behavior strict by default.
+When updating an existing `AGENTS.md`:
 
-   ## Open Questions
+1. Read the full existing file.
+2. Preserve accurate project-specific content.
+3. Add missing required sections.
+4. Add the required `docs/PROJECT_MAP.md` line if missing.
+5. Remove duplicate copies of the required line.
+6. Keep the file organized and easy to skim.
+7. Prefer small, careful edits over full rewrites.
+8. If a full rewrite is necessary, preserve all accurate rules from the old file.
 
-   List anything unclear.
+## Minimal AGENTS.md Template
 
-   ## Inspection Notes
+Use this structure when creating a new `AGENTS.md`.
 
-   Mention what was inspected and what was not inspected.
+```md
+# AGENTS.md
 
-## Output Rules
+## Project Overview
 
-- Only create or update `AGENTS.md`.
-- Do not modify source code.
-- Do not modify `docs/PROJECT_MAP.md`.
-- Do not create a second project map inside `AGENTS.md`.
-- Keep `AGENTS.md` concise.
-- Prefer references to `docs/PROJECT_MAP.md` over duplicated file lists.
-- Do not include secrets, API keys, tokens, passwords, or sensitive data.
-- Do not read actual `.env` files.
+Briefly describe what this project does.
 
-After updating `AGENTS.md`, report:
+## Repository Map
 
-- file path
-- sections added or updated
-- whether `docs/PROJECT_MAP.md` was found and used
-- anything unclear
+Use `docs/PROJECT_MAP.md` if it exists. If it does not exist, recommend running `/repo-map`.
+
+## Common Commands
+
+- Install:
+- Run:
+- Build:
+- Test:
+- Lint:
+- Type-check:
+
+Only keep commands that are confirmed by repository files.
+
+## Important Files and Directories
+
+- `README.md` — project overview and usage.
+- Add only important confirmed paths here.
+
+## Development Rules
+
+- Add repository-specific rules here.
+- Do not invent rules.
+
+## Risky Areas
+
+- Add files or workflows that require extra caution.
+
+## Before Making Changes
+
+- Read this file.
+- Read `docs/PROJECT_MAP.md` if it exists.
+- Inspect the files directly related to the requested change.
+- Run the smallest relevant validation command.
+- Avoid broad rewrites unless explicitly requested.
+
+## Notes for Future Agents
+
+Add durable notes that will help future sessions.
+```
+
+## Output Requirements
+
+After running `/init`, respond with:
+
+1. Whether `AGENTS.md` was created or updated.
+2. Whether `docs/PROJECT_MAP.md` was found.
+3. A short summary of the important changes made.
+4. Any recommended next step, especially running `/repo-map` if the project map is missing.
+
+Keep the response concise.
+
+## Success Criteria
+
+The task is successful when:
+
+- `AGENTS.md` exists.
+- It contains the required `docs/PROJECT_MAP.md` line exactly once.
+- Existing useful instructions were preserved.
+- Repository details are accurate and not invented.
+- `/init` did not perform full repository mapping.
+- The file is concise, durable, and useful for future Pi sessions.

@@ -110,29 +110,6 @@ export default function (pi: ExtensionAPI): void {
     return riskyCommands.some((pattern) => pattern.test(command));
   }
 
-  pi.on("before_agent_start", async (event) => {
-    return {
-      systemPrompt:
-        event.systemPrompt +
-        `
-    Safety rules:
-      - Make small, reviewable changes.
-      - Do not read or edit secret files such as .env files.
-      - Ask before installing or removing packages.
-      - Explain risky commands before running them.
-      - Prefer safe, additive changes.
-      - Run tests or type checks after code changes when available.
-
-    Clarification rules:
-      - If the request is unclear, ask questions before editing files.
-      - Ask only important questions.
-      - Do not ask more than 5 questions.
-      - If the task is clear, continue without asking.
-      - Do not edit files until the user answers clarification questions.
-`
-    };
-  });
-
   pi.on("tool_call", async (event, ctx) => {
     if (event.toolName === "bash") {
       const command = String(event.input.command ?? "");
