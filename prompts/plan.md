@@ -6,7 +6,7 @@ This prompt is read-only. Do not edit, create, or delete any file.
 
 Use the user's message after `/plan` as the request.
 
-If no request is provided, ask the user what they want to plan.
+If no request is provided, use the `ask_user` tool to ask the user what they want to plan.
 
 ## Model preference
 
@@ -48,7 +48,7 @@ For every batch, include:
 
 - Read only.
 - Do not write, edit, delete, install packages, or run commands that change files.
-- Ask questions if the request is unclear.
+- If the request is unclear, use the `ask_user` tool to ask clarifying questions with short, clear options.
 - Do not guess important missing details.
 - Keep the plan actionable and specific.
 - Use plain language, but include technical details where they matter.

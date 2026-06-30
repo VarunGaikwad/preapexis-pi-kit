@@ -14,23 +14,46 @@ type ShellCommand = {
   args: string[];
 };
 
-const RUN_CHOICE = "▶ Run selected updates";
-const CANCEL_CHOICE = "✕ Cancel";
+type UpdateChoice = {
+  label: string;
+  options: UpdateOption[];
+};
+
 const UPDATE_STATUS_KEY = "preapexis-update-status";
 
+const UPDATE_OPTIONS: UpdateOption[] = [
+  {
+    id: "pi",
+    label: "Update Pi",
+    shell: "pi update"
+  },
+  {
+    id: "extensions",
+    label: "Update Pi packages/extensions",
+    shell: "pi update --extensions"
+  }
+];
+
+const UPDATE_CHOICES: UpdateChoice[] = [
+  {
+    label: "Update Pi and packages/extensions",
+    options: [...UPDATE_OPTIONS]
+  },
+  {
+    label: "Update Pi only",
+    options: [UPDATE_OPTIONS[0]]
+  },
+  {
+    label: "Update packages/extensions only",
+    options: [UPDATE_OPTIONS[1]]
+  },
+  {
+    label: "Cancel",
+    options: []
+  }
+];
+
 export default function (pi: ExtensionAPI): void {
-  const options: UpdateOption[] = [
-    {
-      id: "pi",
-      label: "Update Pi",
-      shell: "pi update"
-    },
-    {
-      id: "extensions",
-      label: "Update Pi packages/extensions",
-      shell: "pi update --extensions"
-    }
-  ];
 
   function shellCommand(command: string): ShellCommand {
     if (process.platform === "win32") {
@@ -69,87 +92,20 @@ export default function (pi: ExtensionAPI): void {
     };
   }
 
-  function optionLabel(
-    option: UpdateOption,
-    selected: Map<string, UpdateOption>
-  ): string {
-    const marker = selected.has(option.id) ? "✓" : "×";
-    return `${marker} ${option.label}`;
-  }
-
-  function selectedSummary(selected: UpdateOption[]): string {
-    if (selected.length === 0) {
-      return "Selected: none";
-    }
-
-    return ["Selected:", ...selected.map((option) => `- ${option.label}`)].join(
-      "\n"
-    );
-  }
-
-  function buildMenu(selected: Map<string, UpdateOption>): {
-    items: string[];
-    optionByMenuItem: Map<string, UpdateOption>;
-  } {
-    const optionByMenuItem = new Map<string, UpdateOption>();
-
-    const optionItems = options.map((option) => {
-      const label = optionLabel(option, selected);
-      optionByMenuItem.set(label, option);
-      return label;
-    });
-
-    return {
-      items: [...optionItems, RUN_CHOICE, CANCEL_CHOICE],
-      optionByMenuItem
-    };
-  }
-
   async function chooseUpdates(ctx: EventContext): Promise<UpdateOption[]> {
-    const selected = new Map<string, UpdateOption>();
+    const labels = UPDATE_CHOICES.map((choice) => choice.label);
 
-    while (true) {
-      const { items, optionByMenuItem } = buildMenu(selected);
+    const choice = await ctx.ui.select(
+      "What do you want to update?",
+      labels
+    );
 
-      const choice = await ctx.ui.select(
-        [
-          "What do you want to update?",
-          "",
-          "Pick an item to toggle it.",
-          "✓ = selected, × = not selected",
-          "",
-          selectedSummary([...selected.values()])
-        ].join("\n"),
-        items
-      );
-
-      if (!choice || choice === CANCEL_CHOICE) {
-        return [];
-      }
-
-      if (choice === RUN_CHOICE) {
-        if (selected.size === 0) {
-          ctx.ui.notify("Select at least one update first.", "warning");
-          continue;
-        }
-
-        return [...selected.values()];
-      }
-
-      const option = optionByMenuItem.get(choice);
-
-      if (!option) {
-        continue;
-      }
-
-      if (selected.has(option.id)) {
-        selected.delete(option.id);
-        ctx.ui.notify(`Removed: ${option.label}`, "info");
-      } else {
-        selected.set(option.id, option);
-        ctx.ui.notify(`Added: ${option.label}`, "info");
-      }
+    if (!choice) {
+      return [];
     }
+
+    const selected = UPDATE_CHOICES.find((item) => item.label === choice);
+    return selected?.options ?? [];
   }
 
   async function runUpdate(

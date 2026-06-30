@@ -61,5 +61,6 @@ docs/plans/2026-06-25-add-login-flow.md
 - Fix formatting only.
 - Create missing folders if needed.
 - Do not edit `AGENTS.md` unless the user approves.
-- If a plan file with the same name already exists, ask before overwriting.
+- If a plan file with the same name already exists, use the `ask_user` tool to ask before overwriting.
+- When you need to ask the user anything, use the `ask_user` tool with short, clear options.
 - At the end, report the saved file path.

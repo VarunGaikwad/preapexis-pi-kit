@@ -21,7 +21,7 @@ Or, if the plan is saved as a file, provide the path and read it first.
 ## Rules
 
 - Follow the plan closely.
-- If something is unclear or blocked, stop and ask.
+- If something is unclear or blocked, use the `ask_user` tool to ask the user for clarification with short, clear options.
 - Do not guess important missing details.
 - Prefer editing existing files when it fits the existing project structure.
 - Create new files only when the plan clearly requires it.
