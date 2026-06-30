@@ -38,6 +38,11 @@ export default function (pi: ExtensionAPI): void {
       name: "security",
       description: "Run a read-only security review",
       usage: "/security"
+    },
+    {
+      name: "cavemen",
+      description: "Explain a task, error, or plan in very simple language",
+      usage: "/cavemen <topic or pasted error>"
     }
   ];
 
