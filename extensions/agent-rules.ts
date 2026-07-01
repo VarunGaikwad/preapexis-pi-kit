@@ -1,9 +1,8 @@
 // cSpell:words preapexis
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import type { EventContext } from "./lib/pi-helpers.js";
 
 type AgentMode = "plan" | "build" | "review";
-
-type EventContext = Parameters<Parameters<ExtensionAPI["on"]>[1]>[1];
 
 const MODE_STATUS_KEY = "preapexis-agent-mode";
 

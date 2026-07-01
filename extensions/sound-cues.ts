@@ -1,6 +1,6 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-
-type EventContext = Parameters<Parameters<ExtensionAPI["on"]>[1]>[1];
+import type { EventContext } from "./lib/pi-helpers.js";
+import { isPackageInstall } from "./lib/command-classifier.js";
 
 type SoundName = "start" | "done" | "need-input" | "error";
 
@@ -36,11 +36,7 @@ export default function (pi: ExtensionAPI): void {
     if (event.toolName === "bash") {
       const command = String(event.input.command ?? "");
 
-      if (
-        /\bnpm\s+install\b/i.test(command) ||
-        /\bnpm\s+update\b/i.test(command) ||
-        /\bgit\s+reset\s+--hard\b/i.test(command)
-      ) {
+      if (isPackageInstall(command)) {
         play("need-input");
       }
     }

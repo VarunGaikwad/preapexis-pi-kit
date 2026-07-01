@@ -1,18 +1,14 @@
 // cSpell:words preapexis multiedit
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { existsSync, readFileSync } from "node:fs";
-import * as path from "node:path";
-
-type EventContext = Parameters<Parameters<ExtensionAPI["on"]>[1]>[1];
-
-type ToolDecision =
-  | {
-      block: true;
-      reason: string;
-    }
-  | undefined;
-
-type InputRecord = Record<string, unknown>;
+import { resolveFromCwd } from "./lib/paths.js";
+import {
+  inputRecord,
+  type EventContext,
+  type InputRecord,
+  type ToolDecision
+} from "./lib/pi-helpers.js";
+import { commandMayModifyFiles } from "./lib/command-classifier.js";
 
 type TextEdit = {
   oldText?: string;
@@ -23,14 +19,6 @@ const PREVIEW_STATUS_KEY = "change-preview";
 const MAX_PREVIEW_CHARS = 12000;
 
 export default function (pi: ExtensionAPI): void {
-  function inputRecord(input: unknown): InputRecord {
-    if (input && typeof input === "object") {
-      return input as InputRecord;
-    }
-
-    return {};
-  }
-
   function stringValue(value: unknown): string | undefined {
     return typeof value === "string" ? value : undefined;
   }
@@ -53,14 +41,6 @@ export default function (pi: ExtensionAPI): void {
     return undefined;
   }
 
-  function resolvePath(ctx: EventContext, rawPath: string): string {
-    if (path.isAbsolute(rawPath)) {
-      return path.normalize(rawPath);
-    }
-
-    return path.normalize(path.join(ctx.cwd, rawPath));
-  }
-
   function getTargetPath(ctx: EventContext, input: InputRecord): string {
     const rawPath = firstString(input, [
       "path",
@@ -77,7 +57,7 @@ export default function (pi: ExtensionAPI): void {
       return "(unknown path)";
     }
 
-    return resolvePath(ctx, rawPath);
+    return resolveFromCwd(ctx, rawPath);
   }
 
   function getOldText(input: InputRecord): string | undefined {
@@ -231,11 +211,7 @@ Total characters: ${value.length}`;
     );
 
     for (let oldIndex = oldLines.length - 1; oldIndex >= 0; oldIndex -= 1) {
-      for (
-        let newIndex = newLines.length - 1;
-        newIndex >= 0;
-        newIndex -= 1
-      ) {
+      for (let newIndex = newLines.length - 1; newIndex >= 0; newIndex -= 1) {
         if (oldLines[oldIndex] === newLines[newIndex]) {
           table[oldIndex][newIndex] = table[oldIndex + 1][newIndex + 1] + 1;
         } else {
@@ -291,7 +267,9 @@ Total characters: ${value.length}`;
 
   function compactDiffContext(rows: string[]): string[] {
     const changedIndexes = rows
-      .map((row, index) => (row.startsWith("+ ") || row.startsWith("- ") ? index : -1))
+      .map((row, index) =>
+        row.startsWith("+ ") || row.startsWith("- ") ? index : -1
+      )
       .filter((index) => index >= 0);
 
     if (changedIndexes.length === 0) {
@@ -343,37 +321,9 @@ Total characters: ${value.length}`;
         oldText: getOldText(edit),
         newText: getNewText(edit)
       }))
-      .filter((edit) => edit.oldText !== undefined || edit.newText !== undefined);
-  }
-
-  function commandMayModifyFiles(command: string): boolean {
-    const patterns = [
-      />/,
-      />>/,
-      /\|\s*tee\b/i,
-      /\bsed\s+.*\s-i\b/i,
-      /\bperl\s+.*\s-pi\b/i,
-      /\brm\s+/i,
-      /\bdel\s+/i,
-      /\berase\s+/i,
-      /\bmove\s+/i,
-      /\bmv\s+/i,
-      /\bcopy\s+/i,
-      /\bcp\s+/i,
-      /\btouch\s+/i,
-      /\bmkdir\s+/i,
-      /\brmdir\s+/i,
-      /\bnpm\s+version\b/i,
-      /\bprettier\s+.*--write\b/i,
-      /\beslint\s+.*--fix\b/i,
-      /\btsc\s+.*--build\b/i,
-      /\bgit\s+checkout\s+.*--\s+/i,
-      /\bgit\s+restore\b/i,
-      /\bgit\s+reset\b/i,
-      /\bgit\s+clean\b/i
-    ];
-
-    return patterns.some((pattern) => pattern.test(command));
+      .filter(
+        (edit) => edit.oldText !== undefined || edit.newText !== undefined
+      );
   }
 
   function buildEditPreview(
@@ -428,7 +378,9 @@ Total characters: ${value.length}`;
         : createUnifiedDiff(existingFile, newText);
 
     return [
-      existingFile === undefined ? "File status: new file" : "File status: existing file",
+      existingFile === undefined
+        ? "File status: new file"
+        : "File status: existing file",
       "",
       "```diff",
       truncate(diff),

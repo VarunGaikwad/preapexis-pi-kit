@@ -1,6 +1,5 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-
-type EventContext = Parameters<Parameters<ExtensionAPI["on"]>[1]>[1];
+import type { EventContext } from "./lib/pi-helpers.js";
 
 const PREAPEXIS_ART = [
   "██████╗ ██████╗ ███████╗ █████╗ ██████╗ ███████╗██╗  ██╗██╗███████╗",

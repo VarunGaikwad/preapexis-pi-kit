@@ -1,7 +1,6 @@
 // cSpell:words preapexis
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-
-type EventContext = Parameters<Parameters<ExtensionAPI["on"]>[1]>[1];
+import type { EventContext } from "./lib/pi-helpers.js";
 
 type UpdateOption = {
   id: string;

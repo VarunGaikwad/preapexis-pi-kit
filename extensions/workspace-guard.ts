@@ -1,25 +1,19 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import * as path from "node:path";
-
-type EventContext = Parameters<Parameters<ExtensionAPI["on"]>[1]>[1];
-
-type ToolDecision =
-  | {
-      block: true;
-      reason: string;
-    }
-  | undefined;
-
-type InputRecord = Record<string, unknown>;
+import {
+  confirmOrBlock,
+  inputRecord,
+  type EventContext,
+  type InputRecord,
+  type ToolDecision
+} from "./lib/pi-helpers.js";
+import { normalize, resolveFromCwd } from "./lib/paths.js";
+import { commandLooksOutside } from "./lib/command-classifier.js";
 
 const STATUS_KEY = "workspace-guard";
 
 export default function (pi: ExtensionAPI): void {
   let workspaceRoot: string | null = null;
-
-  function normalize(filePath: string): string {
-    return path.resolve(filePath);
-  }
 
   function isInsideWorkspace(targetPath: string): boolean {
     if (!workspaceRoot) return true;
@@ -28,14 +22,6 @@ export default function (pi: ExtensionAPI): void {
     const target = normalize(targetPath);
 
     return target === root || target.startsWith(root + path.sep);
-  }
-
-  function inputRecord(input: unknown): InputRecord {
-    if (input && typeof input === "object") {
-      return input as InputRecord;
-    }
-
-    return {};
   }
 
   function getPathValue(input: InputRecord): string | undefined {
@@ -60,33 +46,6 @@ export default function (pi: ExtensionAPI): void {
     return undefined;
   }
 
-  function resolveFromWorkspaceOrCwd(ctx: EventContext, value: string): string {
-    if (path.isAbsolute(value)) {
-      return normalize(value);
-    }
-
-    return normalize(path.join(ctx.cwd, value));
-  }
-
-  function commandLooksOutside(command: string): boolean {
-    const patterns = [
-      /\bcd\s+\.\./i,
-      /\bcd\s+["']?\//i,
-      /\bcd\s+["']?[a-zA-Z]:\\/i,
-      /\bpushd\s+\.\./i,
-      /\bpushd\s+["']?\//i,
-      /\bpushd\s+["']?[a-zA-Z]:\\/i,
-      /\bgit\s+-C\s+\.\./i,
-      /\bnpm\s+--prefix\s+\.\./i,
-      /\bpnpm\s+-C\s+\.\./i,
-      /\byarn\s+--cwd\s+\.\./i,
-      /\bSet-Location\s+\.\./i,
-      /\bsl\s+\.\./i
-    ];
-
-    return patterns.some((pattern) => pattern.test(command));
-  }
-
   async function confirmOutsideAccess(
     ctx: EventContext,
     action: string,
@@ -107,23 +66,15 @@ export default function (pi: ExtensionAPI): void {
       "Allow this one time?"
     ].join("\n");
 
-    if (!ctx.hasUI) {
-      return {
-        block: true,
-        reason: `Outside workspace ${action} blocked: ${targetPath}`
-      };
-    }
-
-    const ok = await ctx.ui.confirm("Outside workspace access", message);
-
-    if (!ok) {
-      return {
-        block: true,
-        reason: `Outside workspace ${action} cancelled by user.`
-      };
-    }
-
-    return undefined;
+    return await confirmOrBlock(
+      ctx,
+      "Outside workspace access",
+      message,
+      {
+        noUiReason: `Outside workspace ${action} blocked: ${targetPath}`,
+        blockedReason: `Outside workspace ${action} cancelled by user.`
+      }
+    );
   }
 
   pi.on("session_start", async (_event, ctx) => {
@@ -152,7 +103,7 @@ export default function (pi: ExtensionAPI): void {
       const rawPath = getPathValue(input);
 
       if (rawPath) {
-        const targetPath = resolveFromWorkspaceOrCwd(ctx, rawPath);
+        const targetPath = resolveFromCwd(ctx, rawPath);
 
         return await confirmOutsideAccess(ctx, event.toolName, targetPath);
       }
@@ -164,21 +115,15 @@ export default function (pi: ExtensionAPI): void {
       const rawCwd = typeof input.cwd === "string" ? input.cwd : undefined;
 
       if (rawCwd) {
-        const targetCwd = resolveFromWorkspaceOrCwd(ctx, rawCwd);
+        const targetCwd = resolveFromCwd(ctx, rawCwd);
         const decision = await confirmOutsideAccess(ctx, "command", targetCwd);
 
         if (decision) return decision;
       }
 
       if (commandLooksOutside(command)) {
-        if (!ctx.hasUI) {
-          return {
-            block: true,
-            reason: "Command that may leave the workspace was blocked."
-          };
-        }
-
-        const ok = await ctx.ui.confirm(
+        const decision = await confirmOrBlock(
+          ctx,
           "Command may leave workspace",
           [
             "This command appears to move outside the current workspace.",
@@ -188,15 +133,14 @@ export default function (pi: ExtensionAPI): void {
             command,
             "",
             "Allow this one time?"
-          ].join("\n")
+          ].join("\n"),
+          {
+            noUiReason: "Command that may leave the workspace was blocked.",
+            blockedReason: "Outside-workspace command cancelled by user."
+          }
         );
 
-        if (!ok) {
-          return {
-            block: true,
-            reason: "Outside-workspace command cancelled by user."
-          };
-        }
+        if (decision) return decision;
       }
     }
 

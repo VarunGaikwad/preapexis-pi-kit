@@ -1,4 +1,6 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { isGitForcePush, isGitResetHard } from "./lib/command-classifier.js";
+import { confirmOrBlock } from "./lib/pi-helpers.js";
 
 export default function (pi: ExtensionAPI): void {
   const CHECKPOINT_PREFIX = "pi-checkpoint";
@@ -61,33 +63,26 @@ export default function (pi: ExtensionAPI): void {
     if (event.toolName === "bash") {
       const command = String(event.input.command ?? "");
 
-      if (/\bgit\s+push\s+.*(--force|-f)\b/i.test(command)) {
+      if (isGitForcePush(command)) {
         return {
           block: true,
           reason: "Force-push blocked by git-guard."
         };
       }
 
-      if (/\bgit\s+reset\s+--hard\b/i.test(command)) {
-        if (!ctx.hasUI) {
-          return {
-            block: true,
-            reason:
-              "git reset --hard blocked by git-guard: no UI available for confirmation."
-          };
-        }
-
-        const ok = await ctx.ui.confirm(
+      if (isGitResetHard(command)) {
+        const decision = await confirmOrBlock(
+          ctx,
           "git reset --hard detected",
-          "This will discard uncommitted changes. Are you sure?"
+          "This will discard uncommitted changes. Are you sure?",
+          {
+            noUiReason:
+              "git reset --hard blocked by git-guard: no UI available for confirmation.",
+            blockedReason: "git reset --hard cancelled by user."
+          }
         );
 
-        if (!ok) {
-          return {
-            block: true,
-            reason: "git reset --hard cancelled by user."
-          };
-        }
+        if (decision) return decision;
       }
     }
 
@@ -113,17 +108,17 @@ export default function (pi: ExtensionAPI): void {
           };
         }
 
-        const ok = await ctx.ui.confirm(
+        const decision = await confirmOrBlock(
+          ctx,
           "Git checkpoint failed",
-          `Could not create checkpoint branch: ${stderr}\n\nContinue editing anyway?`
+          `Could not create checkpoint branch: ${stderr}\n\nContinue editing anyway?`,
+          {
+            noUiReason: "Blocked because git checkpoint could not be created.",
+            blockedReason: "Blocked because git checkpoint could not be created."
+          }
         );
 
-        if (!ok) {
-          return {
-            block: true,
-            reason: "Blocked because git checkpoint could not be created."
-          };
-        }
+        if (decision) return decision;
       } else if (ctx.hasUI) {
         ctx.ui.notify(`Git checkpoint created: ${checkpointName}`, "info");
       }

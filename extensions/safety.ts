@@ -1,5 +1,7 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import * as path from "path";
+import { getFileName, getPathSegments } from "./lib/paths.js";
+import { isRiskyCommand } from "./lib/command-classifier.js";
+import { confirmOrBlock } from "./lib/pi-helpers.js";
 
 /**
  * General safety extension for Pi.
@@ -13,46 +15,6 @@ import * as path from "path";
  */
 
 export default function (pi: ExtensionAPI): void {
-  // Do NOT include git push/reset checks here.
-  // Those belong in git-guard.ts to avoid duplicate prompts.
-  const riskyCommands = [
-    // Recursive/forced remove
-    /\brm\s+(-[a-z]*[rf][a-z]*|--recursive|--force)\b/i,
-
-    // Admin / permission risky
-    /\bsudo\b/i,
-    /\bchmod\b.*\b777\b/i,
-
-    // Running remote scripts
-    /\bcurl\b.*\|\s*(sh|bash|zsh)\b/i,
-    /\bwget\b.*\|\s*(sh|bash|zsh)\b/i,
-
-    // Package install/remove
-    /\b(npm|yarn|pnpm)\s+(install|add|remove|uninstall|ci)\b/i,
-    /\b(pip|pip3)\s+(install|uninstall)\b/i,
-    /\b(apt-get|apt)\s+(install|remove|purge)\b/i,
-    /\bbrew\s+(install|uninstall|remove)\b/i,
-
-    // Docker cleanup
-    /\bdocker\s+system\s+prune/i,
-    /\bdocker\s+(container|image|volume|network)\s+prune/i,
-
-    // Disk / filesystem destructive
-    /\bdd\s+if=.+of=\/dev\/[sh]d[a-z]/i,
-    /\bmkfs\b/i,
-    /\b(fdisk|parted)\b/i,
-    />\s*\/dev\/[sh]d[a-z]/i,
-
-    // Shutdown/reboot
-    /\bshutdown\b|\breboot\b|\bpoweroff\b/i,
-
-    // Windows destructive commands
-    /\bformat\s+[a-z]:/i,
-    /\bdiskpart\b/i,
-    /\brd\s+\/s\s+\/q\b/i,
-    /\bdel\s+\/f\s+\/s\s+\/q\b/i
-  ];
-
   const secretFileNames = [
     ".env",
     ".env.local",
@@ -78,19 +40,6 @@ export default function (pi: ExtensionAPI): void {
     "bun.lockb"
   ];
 
-  function getPathSegments(filePath: string): string[] {
-    return path
-      .normalize(filePath)
-      .replaceAll("\\", "/")
-      .split("/")
-      .filter(Boolean);
-  }
-
-  function getFileName(filePath: string): string {
-    const segments = getPathSegments(filePath);
-    return segments.at(-1) ?? "";
-  }
-
   function findSecretFile(filePath: string): string | undefined {
     const fileName = getFileName(filePath);
     return secretFileNames.find((name) => name === fileName);
@@ -106,34 +55,23 @@ export default function (pi: ExtensionAPI): void {
     return confirmEditFileNames.find((name) => name === fileName);
   }
 
-  function isRiskyCommand(command: string): boolean {
-    return riskyCommands.some((pattern) => pattern.test(command));
-  }
-
   pi.on("tool_call", async (event, ctx) => {
     if (event.toolName === "bash") {
       const command = String(event.input.command ?? "");
 
       if (isRiskyCommand(command)) {
-        if (!ctx.hasUI) {
-          return {
-            block: true,
-            reason:
-              "Risky shell command blocked because no UI is available to confirm it."
-          };
-        }
-
-        const choice = await ctx.ui.select(
-          `Risky shell command detected:\n\n${command}\n\nAllow it?`,
-          ["No", "Yes"]
+        const decision = await confirmOrBlock(
+          ctx,
+          "Risky shell command",
+          `${command}\n\nAllow it?`,
+          {
+            noUiReason:
+              "Risky shell command blocked because no UI is available to confirm it.",
+            blockedReason: "Blocked by safety extension."
+          }
         );
 
-        if (choice !== "Yes") {
-          return {
-            block: true,
-            reason: "Blocked by safety extension."
-          };
-        }
+        if (decision) return decision;
 
         console.log(`[safety] User approved risky command: ${command}`);
       }
@@ -181,24 +119,17 @@ export default function (pi: ExtensionAPI): void {
 
       const confirmFile = findConfirmEditFile(filePath);
       if (confirmFile) {
-        if (!ctx.hasUI) {
-          return {
-            block: true,
-            reason: `Editing ${confirmFile} blocked because no UI is available to confirm it.`
-          };
-        }
-
-        const choice = await ctx.ui.select(
-          `Protected file edit detected:\n\n${filePath}\n\nAllow editing ${confirmFile}?`,
-          ["No", "Yes"]
+        const decision = await confirmOrBlock(
+          ctx,
+          "Protected file edit",
+          `${filePath}\n\nAllow editing ${confirmFile}?`,
+          {
+            noUiReason: `Editing ${confirmFile} blocked because no UI is available to confirm it.`,
+            blockedReason: `Editing ${confirmFile} cancelled by user.`
+          }
         );
 
-        if (choice !== "Yes") {
-          return {
-            block: true,
-            reason: `Editing ${confirmFile} cancelled by user.`
-          };
-        }
+        if (decision) return decision;
 
         console.log(`[safety] User approved protected file edit: ${filePath}`);
       }

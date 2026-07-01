@@ -1,8 +1,7 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import * as fs from "fs/promises";
 import * as path from "path";
-
-type EventContext = Parameters<Parameters<ExtensionAPI["on"]>[1]>[1];
+import type { EventContext } from "./lib/pi-helpers.js";
 
 export default function (pi: ExtensionAPI): void {
   const STATUS_KEY = "preapexis-kit-status";
