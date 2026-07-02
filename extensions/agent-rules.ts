@@ -213,7 +213,7 @@ Pi kit behavior:
     }
   });
 
-  pi.registerShortcut("ctrl+m", {
+  pi.registerShortcut("ctrl+alt+m", {
     description: "Cycle PreApeXis agent mode",
     handler: async (ctx) => {
       setMode(nextMode(), ctx);
